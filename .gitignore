@@ -7,15 +7,3 @@ node_modules/
 # Prisma files
 prisma/dev.db
 prisma/migrations/
-
-# Logs
-logs
-*.log
-npm-debug.log*
-
-# OS
-.DS_Store
-
-# Optional
-dist/
-build/
