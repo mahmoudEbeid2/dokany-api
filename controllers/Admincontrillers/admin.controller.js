@@ -16,6 +16,9 @@ export const getAllAdmins = async (req, res) => {
         l_name: true,
         email: true,
         phone: true,
+        city : true,
+        governorate: true,
+        country : true,
       },
     });
 
@@ -85,6 +88,9 @@ export const updateAdmin = async (req, res) => {
         l_name,
         email,
         phone,
+         city ,
+        governorate,
+        country ,
       },
     });
 
@@ -103,5 +109,44 @@ export const deleteAdmin = async (req, res) => {
     res.json({ message: "Admin deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting admin", error: error.message });
+  }
+};
+//  controllers/Admincontrillers/admin.controller.js
+export const searchAdmins = async (req, res) => {
+  const { query } = req.query;
+
+  try {
+    const admins = await prisma.user.findMany({
+      where: {
+        role: "admin",
+        OR: [
+          { user_name: { contains: query, mode: "insensitive" } },
+          { f_name: { contains: query, mode: "insensitive" } },
+          { l_name: { contains: query, mode: "insensitive" } },
+          { email: { contains: query, mode: "insensitive" } },
+          { phone: { contains: query, mode: "insensitive" } },
+        ],
+      },
+      select: {
+        id: true,
+        user_name: true,
+        f_name: true,
+        l_name: true,
+        email: true,
+        phone: true,
+        role: true,
+        city : true,
+        governorate: true,
+        country : true,
+      },
+    });
+
+    if (admins.length === 0) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    res.json({ admins });
+  } catch (err) {
+    res.status(500).json({ message: "Search error", error: err.message });
   }
 };

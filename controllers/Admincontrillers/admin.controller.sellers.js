@@ -24,7 +24,7 @@ export const getAllSellers = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch sellers", details: err.message });
   }
 };
-// GET /admin/seller
+// GET /admin/seller/getSellerById
 export const getSellerById = async (req, res) => {
   const { id } = req.params;
 
@@ -185,4 +185,40 @@ export const deleteSeller = async (req, res) => {
   }
 };
 
+// searchSellers
+export const searchSellers = async (req, res) => {
+  const { query } = req.query;
 
+  try {
+    const sellers = await prisma.user.findMany({
+      where: {
+        role: "seller",
+        OR: [
+          { user_name: { contains: query, mode: "insensitive" } },
+          { f_name: { contains: query, mode: "insensitive" } },
+          { l_name: { contains: query, mode: "insensitive" } },
+          { email: { contains: query, mode: "insensitive" } },
+          { subdomain: { contains: query, mode: "insensitive" } },
+          { phone: { contains: query, mode: "insensitive" } }
+        ],
+      },
+      select: {
+        id: true,
+        user_name: true,
+        f_name: true,
+        l_name: true,
+        email: true,
+        phone: true,
+        subdomain: true,
+      },
+    });
+
+    if (sellers.length === 0) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    res.json({ sellers });
+  } catch (err) {
+    res.status(500).json({ message: "Search error", error: err.message });
+  }
+};

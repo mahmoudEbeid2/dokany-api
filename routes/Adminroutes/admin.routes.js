@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  getAllSellers,getSellerById,addSeller,updateSeller ,deleteSeller 
+  getAllSellers,getSellerById,addSeller,updateSeller ,deleteSeller ,searchSellers  
 } from "../../controllers/Admincontrillers/admin.controller.sellers.js";
 import { verifyToken } from "../../middlewares/auth.js";
 import { isAdmin } from "../../middlewares/isAdmin.js";
@@ -10,13 +10,14 @@ import {
   getAdminById,
   addAdmin,
   updateAdmin,
-  deleteAdmin,
+  deleteAdmin,searchAdmins
 } from "../../controllers/Admincontrillers/admin.controller.js";
 
 const router = express.Router();
 
 // seller Management
-
+// searchSellers http://localhost:4000/admin/sellers/search?query=####
+router.get("/sellers/search", verifyToken, isAdmin, searchSellers);
 // getAllSellers http://localhost:4000/admin/sellers
 router.get("/sellers", verifyToken, isAdmin, getAllSellers);
 // getgetSellerById http://localhost:4000/admin/seller/id
@@ -32,6 +33,9 @@ router.delete("/sellers/:id", verifyToken, isAdmin, deleteSeller);
 
 
 // Admin Management
+
+// searchSellers http://localhost:4000/admin/sellers/search?query=####
+router.get("/search", verifyToken, isAdmin, searchAdmins);
 // getAllSAdmins http://localhost:4000/admin/admins
 router.get("/admins", verifyToken, isAdmin, getAllAdmins);
 // getgetAdminById http://localhost:4000/admin/admins/id
