@@ -48,7 +48,10 @@ model Customer {
   resetToken          String?
   resetTokenExpiresAt DateTime?
   seller_id           String
+<<<<<<< HEAD
   profile_imge        String?
+=======
+>>>>>>> e62cea178324578e284bd33138a902f12a36dfcc
   cart                Cart[]
   seller              User       @relation(fields: [seller_id], references: [id])
   favorites           Favorite[]
