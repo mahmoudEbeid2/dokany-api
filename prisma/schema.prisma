@@ -25,6 +25,7 @@ model User {
   resetTokenExpiresAt DateTime?
   logo                String?
   profile_imge        String?
+   image_public_id  String?
   theme_id            String?
   categories          Category[]
   coupons             Coupon[]
@@ -39,7 +40,7 @@ model Customer {
   user_name           String
   f_name              String
   l_name              String
-  email               String
+  email               String   @unique
   phone               String
   city                String
   governorate         String
@@ -50,6 +51,7 @@ model Customer {
   seller_id           String
 
   profile_imge String?
+   image_public_id  String?
 
   cart      Cart[]
   seller    User       @relation(fields: [seller_id], references: [id])

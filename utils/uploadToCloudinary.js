@@ -6,11 +6,15 @@ export const uploadToCloudinary = async (files, folder = "uploads") => {
   const uploaded = [];
 
   for (const file of fileArray) {
+    if (!file || !file.path) continue;
+
     const result = await cloudinary.uploader.upload(file.path, {
       folder,
     });
 
-    fs.unlinkSync(file.path);
+    if (fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
+    }
 
     uploaded.push({
       url: result.secure_url,
@@ -18,5 +22,5 @@ export const uploadToCloudinary = async (files, folder = "uploads") => {
     });
   }
 
-  return uploaded;
+  return uploaded.length === 1 ? uploaded[0] : uploaded;
 };

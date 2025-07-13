@@ -1,6 +1,11 @@
 import express from "express";
 import {
-  getAllSellers,getSellerById,addSeller,updateSeller ,deleteSeller ,searchSellers  
+  getAllSellers,
+  getSellerById,
+  addSeller,
+  updateSeller,
+  deleteSeller,
+  searchSellers,
 } from "../../controllers/Admincontrillers/admin.controller.sellers.js";
 import { verifyToken } from "../../middlewares/auth.js";
 import { isAdmin } from "../../middlewares/isAdmin.js";
@@ -10,7 +15,8 @@ import {
   getAdminById,
   addAdmin,
   updateAdmin,
-  deleteAdmin,searchAdmins
+  deleteAdmin,
+  searchAdmins,
 } from "../../controllers/Admincontrillers/admin.controller.js";
 
 const router = express.Router();
@@ -29,8 +35,6 @@ router.post("/sellers", verifyToken, isAdmin, addSeller);
 router.put("/sellers/:id", verifyToken, isAdmin, updateSeller);
 // deleteseller http://localhost:4000/admin/sellers/id
 router.delete("/sellers/:id", verifyToken, isAdmin, deleteSeller);
-
-
 
 // Admin Management
 
