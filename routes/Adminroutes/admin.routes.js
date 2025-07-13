@@ -1,18 +1,46 @@
 import express from "express";
 import {
-  getAllSellers,addSeller,updateSeller ,deleteSeller 
+  getAllSellers,getSellerById,addSeller,updateSeller ,deleteSeller 
 } from "../../controllers/Admincontrillers/admin.controller.sellers.js";
 import { verifyToken } from "../../middlewares/auth.js";
 import { isAdmin } from "../../middlewares/isAdmin.js";
 
+import {
+  getAllAdmins,
+  getAdminById,
+  addAdmin,
+  updateAdmin,
+  deleteAdmin,
+} from "../../controllers/Admincontrillers/admin.controller.js";
+
 const router = express.Router();
+
+// seller Management
+
 // getAllSellers http://localhost:4000/admin/sellers
 router.get("/sellers", verifyToken, isAdmin, getAllSellers);
+// getgetSellerById http://localhost:4000/admin/seller/id
+router.get("/sellers/:id", verifyToken, isAdmin, getSellerById);
 // AddSeller http://localhost:4000/admin/sellers
 router.post("/sellers", verifyToken, isAdmin, addSeller);
-// update seller http://localhost:4000/admin/sellers/id
+
+// updateseller http://localhost:4000/admin/sellers/id
 router.put("/sellers/:id", verifyToken, isAdmin, updateSeller);
-// delete seller http://localhost:4000/admin/sellers/id
+// deleteseller http://localhost:4000/admin/sellers/id
 router.delete("/sellers/:id", verifyToken, isAdmin, deleteSeller);
+
+
+
+// Admin Management
+// getAllSAdmins http://localhost:4000/admin/admins
+router.get("/admins", verifyToken, isAdmin, getAllAdmins);
+// getgetAdminById http://localhost:4000/admin/admins/id
+router.get("/admins/:id", verifyToken, isAdmin, getAdminById);
+// AddAdmin http://localhost:4000/admin/admins
+router.post("/admins", verifyToken, isAdmin, addAdmin);
+// updateAdmin http://localhost:4000/admin/admins/id
+router.put("/admins/:id", verifyToken, isAdmin, updateAdmin);
+// deleteAdmin http://localhost:4000/admin/admins/id
+router.delete("/admins/:id", verifyToken, isAdmin, deleteAdmin);
 
 export default router;

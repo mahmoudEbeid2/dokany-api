@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
+
 // GET /admin/sellers
 export const getAllSellers = async (req, res) => {
   try {
@@ -21,6 +22,38 @@ export const getAllSellers = async (req, res) => {
     res.status(200).json({ sellers });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch sellers", details: err.message });
+  }
+};
+// GET /admin/seller
+export const getSellerById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const seller = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        user_name: true,
+        f_name: true,
+        l_name: true,
+        email: true,
+        phone: true,
+        subdomain: true,
+        city: true,
+        governorate: true,
+        country: true,
+        payout_method: true,
+        role: true
+      },
+    });
+
+    if (!seller || seller.role !== "seller") {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    res.status(200).json({ seller });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch seller", error: err.message });
   }
 };
 // add seller
@@ -151,3 +184,5 @@ export const deleteSeller = async (req, res) => {
     res.status(500).json({ message: "Error deleting seller", error: error.message });
   }
 };
+
+
