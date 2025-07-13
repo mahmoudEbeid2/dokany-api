@@ -35,7 +35,7 @@ model User {
 }
 
 model Customer {
-  id                  String     @id @default(cuid())
+  id                  String    @id @default(cuid())
   user_name           String
   f_name              String
   l_name              String
@@ -48,15 +48,14 @@ model Customer {
   resetToken          String?
   resetTokenExpiresAt DateTime?
   seller_id           String
-<<<<<<< HEAD
-  profile_imge        String?
-=======
->>>>>>> e62cea178324578e284bd33138a902f12a36dfcc
-  cart                Cart[]
-  seller              User       @relation(fields: [seller_id], references: [id])
-  favorites           Favorite[]
-  orders              Order[]
-  reviews             Review[]
+
+  profile_imge String?
+
+  cart      Cart[]
+  seller    User       @relation(fields: [seller_id], references: [id])
+  favorites Favorite[]
+  orders    Order[]
+  reviews   Review[]
 }
 
 model Product {
