@@ -9,6 +9,7 @@ import customerAuthRoutes from "./routes/auth/customer.auth.routes.js";
 
 import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cart.routes.js";
+import favRoutes from "./routes/favorites.routes.js";
 
 import customerRouteres from "./routes/customerRoutes.js";
 import cors from "cors";
@@ -37,6 +38,8 @@ app.use("/products", productRoutes);
 
 // Cart
 app.use("/", cartRoutes);
+// fav
+app.use("/", favRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
