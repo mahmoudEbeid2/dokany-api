@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import e from "express";
 const prisma = new PrismaClient();
 
 export const addProduct = async (req, res) => {
@@ -94,16 +95,121 @@ export const getProductById = async (req, res) => {
 
 //  get products/seller/:subdomin
 
-export const getProductsBySeller = async (req, res) => {
+export const getProductsBySubdomain = async (req, res) => {
   try {
     const { subdomain } = req.params;
+    const page = parseInt(req.query.page) ||1;
+    const pageSize = 10;
+    const skip = (page - 1) * pageSize;
+
+    // search seller
+    const seller = await prisma.user.findUnique({ where: { subdomain } });
+    if (!seller) return res.status(404).json({ error: "Seller not found" });
+
     const products = await prisma.product.findMany({
-      where: { seller: { subdomain } },
+      // where: { seller: { subdomain } },
+      where: { seller_id: seller.id },
+      skip,
+      take: pageSize,
+      include: {
+        images: true, 
+        category: true,
+        reviews: true,
+        cart: true,
+        favorites: true,
+        orders: true,
+      },
+    });
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error fetching products by seller:", error);
+    res.status(500).json({ error: "Something went wrong"});
+  }
+
+}
+
+// Get/products/seller/:subdomain/discount"
+
+// export const getDiscountedProductsBySeller = async (req, res) => {
+//   try {
+//     const { subdomain } = req.params;
+//     const products = await prisma.product.findMany({
+//       where: { seller: { subdomain }, discount: { gt: 0 } },
+//     });
+//     res.status(200).json(products);
+//   } catch (error) {
+//     console.error("Error fetching discounted products by seller:", error);
+//     res.status(500).json({ error: "Something went wrong" });
+//   }
+// };
+
+
+export const getDiscountedProductsBySeller = async (req, res) => {
+  try {
+    const { subdomain } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = 10; 
+    const skip = (page - 1) * pageSize;
+
+    const products = await prisma.product.findMany({
+      where: {
+        seller: { subdomain },
+        discount: { gt: 0 },
+      },
+      skip,
+      take: pageSize,
+      include: {
+        images: true, 
+      },
+    });
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error fetching discounted products by seller:", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+};
+
+// Get products/seller/:sellerId
+export const getProductsBySellerId = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    const products = await prisma.product.findMany({
+      where: { seller_id: sellerId },
     });
     res.status(200).json(products);
   } catch (error) {
     console.error("Error fetching products by seller:", error);
     res.status(500).json({ error: "Something went wrong" });
   }
-  
+}
+
+// updeate product by id
+export const updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, price, discount, stock, status ,category_id} = req.body;
+    const product = await prisma.product.update({
+      where: { id },
+      data: { title, description, price, discount, stock, status ,category_id },
+    });
+    res.status(200).json(product);
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+}
+
+// delete product by id 
+
+export const deleteProduct = async (req, res)=>{
+  try{
+    const {id}= req.params;
+    const product = await prisma.product.delete({where:{id}});
+    res.status(200).json(product);
+
+  }catch(error){
+    console.error("Error deleting product:", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
 }

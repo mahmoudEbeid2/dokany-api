@@ -2,17 +2,20 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 
-import webhookRouter from "./middlewares/rawBody.js"; // ⬅️ قبل express.json
+import webhookRouter from "./middlewares/rawBody.js";
 import stripeRoutes from "./routes/stripeRoutes.js";
 
-// باقي الراوتات...
 import adminRoutes from "./routes/Adminroutes/admin.routes.js";
 import adminAuthRoutes from "./routes/auth/admin.auth.routes.js";
 import sellerAuthRoutes from "./routes/auth/seller.auth.routes.js";
 import customerAuthRoutes from "./routes/auth/customer.auth.routes.js";
 import productRoutes from "./routes/productRoutes.js";
+
 import customerRoutId from "./routes/customer/customerById.routes.js";
 import customerRouterToken from "./routes/customer/customerByToken.routes.js";
+
+import cartRoutes from "./routes/cart.routes.js";
+import favRoutes from "./routes/favorites.routes.js";
 
 dotenv.config();
 const app = express();
@@ -39,6 +42,11 @@ app.use("/products", productRoutes);
 
 // stripe
 app.use("/api/stripe", stripeRoutes);
+
+// Cart
+app.use("/", cartRoutes);
+// fav
+app.use("/", favRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
