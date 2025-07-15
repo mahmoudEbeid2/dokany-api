@@ -8,6 +8,7 @@ import sellerAuthRoutes from "./routes/auth/seller.auth.routes.js";
 import customerAuthRoutes from "./routes/auth/customer.auth.routes.js";
 
 import productRoutes from "./routes/productRoutes.js";
+import cartRoutes from "./routes/cart.routes.js";
 
 import customerRouteres from "./routes/customerRoutes.js";
 import cors from "cors";
@@ -29,6 +30,13 @@ app.use("/admin", adminRoutes);
 
 // product
 app.use("/products", productRoutes);
+
+
+
+
+
+// Cart
+app.use("/", cartRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
