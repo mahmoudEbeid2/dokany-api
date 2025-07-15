@@ -7,7 +7,6 @@ import {
   updateCustomer,
   deleteCustomer,
   getDashboardStats,
-  getSellerByToken,
   updateSeller,
   deleteSeller,
 } from "../controllers/seller.controller.js";
@@ -23,7 +22,6 @@ router.post("/seller/customers", verifyToken, createCustomer);
 router.put("/seller/customers/:id", verifyToken, updateCustomer);
 router.delete("/seller/customers/:id", verifyToken, deleteCustomer);
 router.get("/seller/dashboard-stats", verifyToken, getDashboardStats);
-router.get("/seller/token", verifyToken, getSellerByToken);
 router.put("/seller/id/:id", verifyToken, updateSeller);
 router.delete("/seller/id/:id", verifyToken, deleteSeller);
 export default router;

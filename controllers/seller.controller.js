@@ -47,38 +47,6 @@ export const getSellerBySubdomain = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-// ! ------------------------- Get Seller By Token-----------------
-export const getSellerByToken = async (req, res) => {
-  // The user's ID is attached to the request by the verifyToken middleware
-  const { id } = req.user;
-
-  try {
-    const seller = await prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        user_name: true,
-        email: true,
-        f_name: true,
-        l_name: true,
-        subdomain: true,
-        role: true,
-        city: true,
-        governorate: true,
-        country: true,
-      },
-    });
-
-    if (!seller || seller.role !== "seller") {
-      return res.status(404).json({ message: "Seller not found" });
-    }
-
-    res.json(seller);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
 // !------------------------- Update Seller-----------------
 export const updateSeller = async (req, res) => {
   const { id } = req.params;
