@@ -17,6 +17,8 @@ import customerRouterToken from "./routes/customer/customerByToken.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
 import favRoutes from "./routes/favorites.routes.js";
 
+import sellerRoutes from "./routes/seller.routes.js";
+
 dotenv.config();
 const app = express();
 
@@ -48,5 +50,7 @@ app.use("/", cartRoutes);
 // fav
 app.use("/", favRoutes);
 
+// seller
+app.use("/api/sellers", sellerRoutes);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
