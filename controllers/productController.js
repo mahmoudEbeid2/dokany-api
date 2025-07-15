@@ -45,11 +45,14 @@ export const addProduct = async (req, res) => {
 
     for (const file of files) {
       const imageData = await uploadToCloudinary(file, "product_images");
+      console.log("Image data:", imageData);
 
       await prisma.image.create({
         data: {
           image: imageData.url,
           product_id,
+          // image_public_id: imageData.public_id,
+
         },
       });
     }
@@ -249,6 +252,7 @@ export const updateProduct = async (req, res) => {
           data: {
             image: imageData.url,
             product_id: updatedProduct.id,
+            image_public_id: imageData.public_id,
           },
         });
       }
