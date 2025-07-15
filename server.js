@@ -4,6 +4,7 @@ import cors from "cors";
 
 import webhookRouter from "./middlewares/rawBody.js";
 import stripeRoutes from "./routes/stripeRoutes.js";
+import payoutRoutes from "./routes/payouts/payouts.route.js";
 
 import adminRoutes from "./routes/Adminroutes/admin.routes.js";
 import adminAuthRoutes from "./routes/auth/admin.auth.routes.js";
@@ -42,6 +43,9 @@ app.use("/products", productRoutes);
 
 // stripe
 app.use("/api/stripe", stripeRoutes);
+
+// payout
+app.use("/api", payoutRoutes);
 
 // Cart
 app.use("/", cartRoutes);
