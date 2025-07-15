@@ -4,6 +4,9 @@ import cloudinary from "../utils/cloudinary.js";
 
 // Get Customer by Token
 export async function getCustomerByToken(req, res) {
+  const role = req.user.role;
+  if (!role === "customer")
+    return res.status(403).json({ message: "Access denied. Customers only." });
   try {
     console.log("Decoded Token:", req.user);
 
@@ -25,6 +28,9 @@ export const updateCustomerByToken = async (req, res) => {
   const id = req.user.id;
   const file = req.file;
 
+  const role = req.user.role;
+  if (!role === "customer")
+    return res.status(403).json({ message: "Access denied. Customers only." });
   try {
     const customer = await prisma.customer.findUnique({ where: { id } });
 
@@ -56,6 +62,10 @@ export const updateCustomerByToken = async (req, res) => {
 // Delete Customer by Token
 export const deleteCustomerByToken = async (req, res) => {
   const id = req.user.id;
+
+  const role = req.user.role;
+  if (!role === "customer")
+    return res.status(403).json({ message: "Access denied. Customers only." });
 
   try {
     const customer = await prisma.customer.findUnique({ where: { id } });

@@ -25,7 +25,7 @@ model User {
   resetTokenExpiresAt DateTime?
   logo                String?
   profile_imge        String?
-   image_public_id  String?
+  image_public_id  String?
   theme_id            String?
   categories          Category[]
   coupons             Coupon[]
@@ -37,7 +37,7 @@ model User {
 
 model Customer {
   id                  String    @id @default(cuid())
-  user_name           String
+  user_name           String    @unique
   f_name              String
   l_name              String
   email               String   @unique
@@ -54,7 +54,7 @@ model Customer {
    image_public_id  String?
 
   cart      Cart[]
-  seller    User       @relation(fields: [seller_id], references: [id])
+  seller    User       @relation(fields: [seller_id], references: [id],onDelete: Cascade)
   favorites Favorite[]
   orders    Order[]
   reviews   Review[]
@@ -75,8 +75,8 @@ model Product {
   favorites   Favorite[]
   images      Image[]
   orders      Order[]
-  category    Category?  @relation(fields: [category_id], references: [id])
-  seller      User       @relation(fields: [seller_id], references: [id])
+  category    Category?  @relation(fields: [category_id], references: [id],onDelete: Cascade)
+  seller      User       @relation(fields: [seller_id], references: [id],onDelete: Cascade)
   reviews     Review[]
 }
 
@@ -84,7 +84,8 @@ model Image {
   id         String  @id @default(cuid())
   product_id String
   image      String
-  product    Product @relation(fields: [product_id], references: [id])
+  image_public_id  String?
+  product    Product @relation(fields: [product_id], references: [id],onDelete: Cascade)
 }
 
 model Order {
@@ -110,7 +111,7 @@ model Coupon {
   product_id      String
   seller_id       String
   product         Product  @relation(fields: [product_id], references: [id])
-  seller          User     @relation(fields: [seller_id], references: [id])
+  seller          User     @relation(fields: [seller_id], references: [id],onDelete: Cascade)
   orders          Order[]
 }
 
@@ -121,7 +122,7 @@ model Payout {
   payout_method String
   seller_id     String
   date          DateTime @default(now())
-  seller        User     @relation(fields: [seller_id], references: [id])
+  seller        User     @relation(fields: [seller_id], references: [id],onDelete: Cascade)
 }
 
 model Theme {
@@ -136,16 +137,16 @@ model Cart {
   quantity    Int
   customer_id String
   product_id  String
-  customer    Customer @relation(fields: [customer_id], references: [id])
-  product     Product  @relation(fields: [product_id], references: [id])
+  customer    Customer @relation(fields: [customer_id], references: [id],onDelete: Cascade)
+  product     Product  @relation(fields: [product_id], references: [id],onDelete: Cascade)
 }
 
 model Favorite {
   id          String   @id @default(cuid())
   customer_id String
   product_id  String
-  customer    Customer @relation(fields: [customer_id], references: [id])
-  product     Product  @relation(fields: [product_id], references: [id])
+  customer    Customer @relation(fields: [customer_id], references: [id],onDelete: Cascade)
+  product     Product  @relation(fields: [product_id], references: [id],onDelete: Cascade)
 }
 
 model Review {
@@ -154,8 +155,8 @@ model Review {
   rating      Int
   customer_id String
   product_id  String
-  customer    Customer @relation(fields: [customer_id], references: [id])
-  product     Product  @relation(fields: [product_id], references: [id])
+  customer    Customer @relation(fields: [customer_id], references: [id],onDelete: Cascade)
+  product     Product  @relation(fields: [product_id], references: [id],onDelete: Cascade)
 }
 
 model Category {
@@ -163,6 +164,6 @@ model Category {
   name      String
   image     String
   seller_id String
-  seller    User      @relation(fields: [seller_id], references: [id])
+  seller    User      @relation(fields: [seller_id], references: [id],onDelete: Cascade)
   products  Product[]
 }

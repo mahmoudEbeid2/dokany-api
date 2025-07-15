@@ -1,12 +1,7 @@
 import prisma from "../config/db.js";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import cloudinary from "../utils/cloudinary.js";
-export async function getCustomerByToken_DEBUG(req, res) {
-  console.log("=====> ENTERED getCustomerByToken_DEBUG");
 
-  console.log("WORKING VERSION");
-  throw new Error("DEBUG");
-}
 // Get customer by ID
 export const getCustomerById = async (req, res) => {
   const role = req.user.role;
