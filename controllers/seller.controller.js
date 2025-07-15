@@ -1,23 +1,12 @@
 import prisma from "../config/db.js";
 
 //! --------------Geting Seller By ID------------------
+
 export const getSellerById = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.user;
   try {
     const seller = await prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        user_name: true,
-        email: true,
-        f_name: true,
-        l_name: true,
-        subdomain: true,
-        role: true,
-        city: true,
-        governorate: true,
-        country: true,
-      },
     });
 
     if (!seller || seller.role !== "seller") {
@@ -32,7 +21,7 @@ export const getSellerById = async (req, res) => {
 
 //! ------------ Get Seller By Subdomain-------------
 export const getSellerBySubdomain = async (req, res) => {
-  const { subdomain } = req.params;
+  const { subdomain } = req.user;
   try {
     const seller = await prisma.user.findFirst({
       where: { subdomain, role: "seller" },
@@ -47,9 +36,10 @@ export const getSellerBySubdomain = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 // !------------------------- Update Seller-----------------
 export const updateSeller = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.user;
   const { user_name, f_name, l_name, email, city, governorate, country } =
     req.body;
 
@@ -79,7 +69,7 @@ export const updateSeller = async (req, res) => {
 
 // ! -------------------Delete Seller-----------------
 export const deleteSeller = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.user;
   try {
     await prisma.user.delete({ where: { id, role: "seller" } });
     res.json({ message: "Seller deleted successfully" });
@@ -93,7 +83,7 @@ export const deleteSeller = async (req, res) => {
 
 //!------------- Get Customers of Seller by sellerId----------------
 export const getSellerCustomers = async (req, res) => {
-  const { sellerId } = req.params;
+  const { sellerId } = req.user;
   try {
     const customers = await prisma.customer.findMany({
       where: { seller_id: sellerId },
