@@ -1,44 +1,60 @@
 import { PrismaClient } from "@prisma/client";
-import e from "express";
+
+import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
+import cloudinary from "../utils/cloudinary.js";
+
 const prisma = new PrismaClient();
-
+// add product
 export const addProduct = async (req, res) => {
+  const files = req.files;
+  const user = req.user;
+
+  if (user.role !== "seller") {
+    return res.status(403).json({ error: "Only sellers can add products" });
+  }
+
   try {
-    const {
-      title,
-      description,
-      price,
-      discount,
-      stock,
-      status,
-      seller_id,
-      category_id
-    } = req.body;
+    const { title, description, price, discount, stock, status, category_id } =
+      req.body;
 
-    // التحقق من وجود البائع
-    const seller = await prisma.user.findUnique({ where: { id: seller_id } });
-    if (!seller) return res.status(400).json({ error: "Seller not found" });
-
-    // التحقق من وجود التصنيف (لو موجود)
     if (category_id) {
-      const category = await prisma.category.findUnique({ where: { id: category_id } });
-      if (!category) return res.status(400).json({ error: "Category not found" });
+      const category = await prisma.category.findUnique({
+        where: { id: category_id },
+      });
+      if (!category) {
+        return res.status(400).json({ error: "Category not found" });
+      }
     }
+
 
     const product = await prisma.product.create({
       data: {
         title,
         description,
-        price,
-        discount,
-        stock,
+        price: parseFloat(price),
+        discount: parseFloat(discount),
+        stock: parseInt(stock),
         status,
-        seller_id,
+        seller_id: user.id,
         category_id,
       },
     });
 
-    res.status(201).json(product);
+  //   upload images
+    const product_id = product.id;
+
+    for (const file of files) {
+      const imageData = await uploadToCloudinary(file, "product_images");
+
+      await prisma.image.create({
+        data: {
+          image: imageData.url,
+          product_id,
+        },
+      });
+    }
+
+    res.status(201).json({ message: "Product created successfully", product });
   } catch (error) {
     console.error("Error adding product:", error);
     res.status(500).json({ error: "Something went wrong" });
@@ -98,7 +114,7 @@ export const getProductById = async (req, res) => {
 export const getProductsBySubdomain = async (req, res) => {
   try {
     const { subdomain } = req.params;
-    const page = parseInt(req.query.page) ||1;
+    const page = parseInt(req.query.page) || 1;
     const pageSize = 10;
     const skip = (page - 1) * pageSize;
 
@@ -107,12 +123,12 @@ export const getProductsBySubdomain = async (req, res) => {
     if (!seller) return res.status(404).json({ error: "Seller not found" });
 
     const products = await prisma.product.findMany({
-      // where: { seller: { subdomain } },
+    
       where: { seller_id: seller.id },
       skip,
       take: pageSize,
       include: {
-        images: true, 
+        images: true,
         category: true,
         reviews: true,
         cart: true,
@@ -123,32 +139,16 @@ export const getProductsBySubdomain = async (req, res) => {
     res.status(200).json(products);
   } catch (error) {
     console.error("Error fetching products by seller:", error);
-    res.status(500).json({ error: "Something went wrong"});
+    res.status(500).json({ error: "Something went wrong" });
   }
-
-}
-
-// Get/products/seller/:subdomain/discount"
-
-// export const getDiscountedProductsBySeller = async (req, res) => {
-//   try {
-//     const { subdomain } = req.params;
-//     const products = await prisma.product.findMany({
-//       where: { seller: { subdomain }, discount: { gt: 0 } },
-//     });
-//     res.status(200).json(products);
-//   } catch (error) {
-//     console.error("Error fetching discounted products by seller:", error);
-//     res.status(500).json({ error: "Something went wrong" });
-//   }
-// };
+};
 
 
 export const getDiscountedProductsBySeller = async (req, res) => {
   try {
     const { subdomain } = req.params;
     const page = parseInt(req.query.page) || 1;
-    const pageSize = 10; 
+    const pageSize = 10;
     const skip = (page - 1) * pageSize;
 
     const products = await prisma.product.findMany({
@@ -159,7 +159,7 @@ export const getDiscountedProductsBySeller = async (req, res) => {
       skip,
       take: pageSize,
       include: {
-        images: true, 
+        images: true,
       },
     });
 
@@ -182,34 +182,104 @@ export const getProductsBySellerId = async (req, res) => {
     console.error("Error fetching products by seller:", error);
     res.status(500).json({ error: "Something went wrong" });
   }
-}
+};
 
-// updeate product by id
+// update product
 export const updateProduct = async (req, res) => {
+  const files = req.files || [];
+  const user = req.user;
+
+  if (user.role !== "seller") {
+    return res.status(403).json({ error: "Only sellers can update products" });
+  }
+
   try {
     const { id } = req.params;
-    const { title, description, price, discount, stock, status ,category_id} = req.body;
-    const product = await prisma.product.update({
+    const { title, description, price, discount, stock, status, category_id } = req.body;
+
+    if (!id) return res.status(400).json({ error: "Product id is required" });
+
+    const existingProduct = await prisma.product.findUnique({
       where: { id },
-      data: { title, description, price, discount, stock, status ,category_id },
+      include: { images: true },
     });
-    res.status(200).json(product);
+
+    if (!existingProduct)
+      return res.status(404).json({ error: "Product not found" });
+
+
+    if (existingProduct.seller_id !== user.id)
+      return res.status(403).json({ error: "Unauthorized" });
+
+
+    if (category_id) {
+      const category = await prisma.category.findUnique({
+        where: { id: category_id },
+      });
+      if (!category) {
+        return res.status(400).json({ error: "Category not found" });
+      }
+    }
+
+
+    const updatedProduct = await prisma.product.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        price: parseFloat(price),
+        discount: parseFloat(discount),
+        stock: parseInt(stock),
+        status,
+        category_id,
+      },
+    });
+
+ 
+    if (files.length > 0) {
+      for (const img of existingProduct.images) {
+        const publicId = img.image.split("/").pop().split(".")[0];
+        await cloudinary.uploader.destroy(publicId);
+        await prisma.image.delete({ where: { id: img.id } });
+      }
+
+      for (const file of files) {
+        const imageData = await uploadToCloudinary(file, "product_images");
+        await prisma.image.create({
+          data: {
+            image: imageData.url,
+            product_id: updatedProduct.id,
+          },
+        });
+      }
+    }
+
+    res.status(200).json({ message: "Product updated successfully", product: updatedProduct });
   } catch (error) {
     console.error("Error updating product:", error);
     res.status(500).json({ error: "Something went wrong" });
   }
-}
+};
 
-// delete product by id 
 
-export const deleteProduct = async (req, res)=>{
-  try{
-    const {id}= req.params;
-    const product = await prisma.product.delete({where:{id}});
+
+
+export const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "Product id is required" });
+
+    const existingProduct = await prisma.product.findUnique({
+      where: { id },
+      include: { images: true }, // dele5t img
+    });
+    if (!existingProduct)
+      return res.status(404).json({ error: "Product not found" });
+
+    const product = await prisma.product.delete({ where: { id } });
     res.status(200).json(product);
-
-  }catch(error){
+  } catch (error) {
     console.error("Error deleting product:", error);
     res.status(500).json({ error: "Something went wrong" });
   }
-}
+};
