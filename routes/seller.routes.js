@@ -12,7 +12,6 @@ import {
 } from "../controllers/seller.controller.js";
 
 import { verifyToken } from "../middlewares/auth.js";
-
 const router = express.Router();
 
 router.get("/seller/id/:id", verifyToken, getSellerById);

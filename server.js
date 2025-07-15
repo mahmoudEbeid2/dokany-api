@@ -56,7 +56,7 @@ app.use("/", cartRoutes);
 app.use("/", favRoutes);
 
 // seller
-app.use("/api/sellers", sellerRoutes);
+app.use("/api", sellerRoutes);
 // order
 app.use("/api", orderRouter);
 const PORT = process.env.PORT || 5000;
