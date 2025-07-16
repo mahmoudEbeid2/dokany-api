@@ -37,6 +37,7 @@ export const addProduct = async (req, res) => {
         status,
         seller_id: user.id,
         category_id,
+
       },
     });
 
@@ -45,11 +46,14 @@ export const addProduct = async (req, res) => {
 
     for (const file of files) {
       const imageData = await uploadToCloudinary(file, "product_images");
+      console.log("Image data:", imageData);
 
       await prisma.image.create({
         data: {
           image: imageData.url,
           product_id,
+          image_public_id: imageData.public_id,
+
         },
       });
     }
@@ -96,7 +100,6 @@ export const getProductById = async (req, res) => {
         reviews: true,
         cart: true,
         favorites: true,
-        orders: true,
       },
     });
 
@@ -249,6 +252,7 @@ export const updateProduct = async (req, res) => {
           data: {
             image: imageData.url,
             product_id: updatedProduct.id,
+            image_public_id: imageData.public_id,
           },
         });
       }
@@ -277,9 +281,11 @@ export const deleteProduct = async (req, res) => {
       return res.status(404).json({ error: "Product not found" });
 
     const product = await prisma.product.delete({ where: { id } });
-    res.status(200).json(product);
+    res.status(200).json({message: "Product deleted successfully", product});
   } catch (error) {
     console.error("Error deleting product:", error);
     res.status(500).json({ error: "Something went wrong" });
   }
 };
+
+// npx prisma migrate dev --name add_image_public_id

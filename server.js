@@ -17,6 +17,8 @@ import customerRouterToken from "./routes/customer/customerByToken.routes.js";
 
 import cartRoutes from "./routes/cart.routes.js";
 import favRoutes from "./routes/favorites.routes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
 
 import sellerRoutes from "./routes/seller.routes.js";
 
@@ -55,9 +57,13 @@ app.use("/api", payoutRoutes);
 app.use("/", cartRoutes);
 // fav
 app.use("/", favRoutes);
+// reviews
+app.use("/reviews", reviewRoutes );
+// category
+app.use("/categories", categoryRoutes );
 
 // seller
-app.use("/api/sellers", sellerRoutes);
+app.use("/api", sellerRoutes);
 // order
 app.use("/api", orderRouter);
 
