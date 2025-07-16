@@ -12,7 +12,7 @@ export const addCategory = async (req, res) => {
     return res.status(403).json({ error: "Only sellers can add categories" });
   try {
     const categoryImage = await uploadToCloudinary(file, "category_images");
-    console.log("categoryImage", categoryImage);
+    // console.log("categoryImage", categoryImage);
     const category = await prisma.category.create({
       data: {
         name,
