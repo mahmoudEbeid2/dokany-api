@@ -215,8 +215,9 @@ export const getSellerEarningsSummary = async (req, res) => {
 
     const totalPaidOut = payoutsTotal._sum.amount || 0;
 
+    const websiteTax = totalPaidOut * 0.10
     // Remaining Balance = Total Earnings From Orders - Total Earnings From Paid Out (Actual Earnings)
-    const remaining = totalFromOrders - totalPaidOut;
+    const remaining = totalFromOrders - totalPaidOut - websiteTax;
 
     res.json({
       total_earned_from_orders: totalFromOrders,
