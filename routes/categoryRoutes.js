@@ -14,9 +14,9 @@ import {
 const router = express.Router();
 
 router.post("/", upload.single("image"), verifyToken, addCategory);
-router.get("/:id", verifyToken, getRecommendedProducts);
-router.get("/seller/", verifyToken, getCategoriesBySeller);
+router.get("/seller", verifyToken, getCategoriesBySeller);
 router.get("/subdomain/:subdomain", verifyToken, getCategoriesBySubdomain);
+router.get("/:id", verifyToken, getRecommendedProducts);
 router.put("/:id", upload.single("image"), verifyToken, updateCategory);
 router.delete("/:id", verifyToken, deleteCategory);
 

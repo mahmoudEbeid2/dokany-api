@@ -104,6 +104,8 @@ export const updateCategory = async (req, res) => {
   try {
     const category = await prisma.category.findUnique({ where: { id } });
 
+    if(user.id !== category.seller_id) return res.status(403).json({ error: "Unauthorized" });
+
     if (!category) {
       return res.status(404).json({ error: "Category not found" });
     }
@@ -140,9 +142,11 @@ export const deleteCategory = async (req, res) => {
       .status(403)
       .json({ error: "Only sellers can delete categories" });
   const { id } = req.params;
+  
 
   try {
     const category = await prisma.category.findUnique({ where: { id } });
+    if(user.id !== category.seller_id) return res.status(403).json({ error: "Unauthorized" });
 
     if (!category) {
       return res.status(404).json({ error: "Category not found" });
