@@ -174,3 +174,58 @@ export const getDashboardStats = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// -----------------------Get Total Earnings Summary-------------------
+// GET /seller/earnings-summary
+export const getSellerEarningsSummary = async (req, res) => {
+  if (req.user.role !== "seller") {
+    return res.status(403).json({ message: "Access denied. Sellers only." });
+  }
+
+  const sellerId = req.user.id;
+
+  try {
+    // Calculate Total Earnings From Orders Only
+    const ordersTotal = await prisma.orderItem.aggregate({
+      where: {
+        product: {
+          seller_id: sellerId,
+        },
+        order: {
+          order_status: "completed", // Completed orders (Or Status in Prisma)
+        },
+      },
+      _sum: {
+        price: true,
+      },
+    });
+
+    const totalFromOrders = ordersTotal._sum.price || 0;
+
+    // Calculate Total Earnings From Paid Out
+    const payoutsTotal = await prisma.payout.aggregate({
+      where: {
+        seller_id: sellerId,
+        status: "paid", // Paid Status (Or Status in Prisma)
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    const totalPaidOut = payoutsTotal._sum.amount || 0;
+
+    // Remaining Balance = Total Earnings From Orders - Total Earnings From Paid Out (Actual Earnings)
+    const remaining = totalFromOrders - totalPaidOut;
+
+    res.json({
+      total_earned_from_orders: totalFromOrders,
+      total_paid_out: totalPaidOut,
+      remaining_balance: remaining,
+    });
+
+  } catch (error) {
+    console.error("Error calculating seller earnings:", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
