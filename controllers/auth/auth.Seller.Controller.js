@@ -53,10 +53,10 @@ export async function register(req, res) {
     let logoUrl = null;
     let logoID = null;
 
-    // ارفع صورة اللوجو إذا تم تمريرها كـ req.files.logo
-    if (req.files && req.files.logo) {
+    // Logo Image
+    if (req.file) {
       try {
-        const uploadedLogo = await uploadToCloudinary(req.files.logo[0], "seller_logos");
+        const uploadedLogo = await uploadToCloudinary(req.file, "seller_logos");
         logoUrl = uploadedLogo?.url;
         logoID = uploadedLogo?.public_id;
       } catch (uploadError) {
