@@ -288,4 +288,35 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// npx prisma migrate dev --name add_image_public_id
+// costomer search by product title in subdomain
+export const searchProductsByTitle = async (req, res) => {
+  try {
+    const {subdomain} = req.body
+    const { title } = req.query;
+    const isSubdomain = await prisma.user.findUnique({
+      where: { subdomain },
+    });
+
+    if (!isSubdomain) {
+      return res.status(404).json({ error: "Subdomain not found" });
+    }
+    const products = await prisma.product.findMany({
+      where: {
+        seller: { subdomain },
+        title: { contains: title, mode: "insensitive" },
+      },
+      include: {
+        images: true,
+      },
+
+    });
+
+    res.status(200).json({
+      products,
+      
+    })
+  } catch (error) {
+    console.error("Error searching products by title:", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+};
