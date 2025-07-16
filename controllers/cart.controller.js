@@ -16,12 +16,15 @@ export const getCustomerCart = async (req, res) => {
       include: { product: true },
     });
 
-    res.json(cart);
+    const finalPrice = cart.reduce((sum, item) => sum + item.final_price, 0);
+
+    res.json({ cart, finalPrice });
   } catch (err) {
     console.error("Error fetching cart:", err);
     res.status(500).json({ error: "Failed to fetch cart" });
   }
 };
+
 
 //  Add product to cart
 export const addToCart = async (req, res) => {

@@ -45,6 +45,7 @@ export const addSeller = async (req, res) => {
     password,
     subdomain,
     payout_method,
+    theme_id, 
   } = req.body;
 
   try {
@@ -73,11 +74,19 @@ export const addSeller = async (req, res) => {
 
     let imageUrl = null;
     let imageID = null;
+    let logoUrl = null;
+    let logoID = null;
 
-    if (req.file) {
-      const uploadedImage = await uploadToCloudinary(req.file, "seller_profiles");
+    if (req.files?.profile) {
+      const uploadedImage = await uploadToCloudinary(req.files.profile[0], "seller_profiles");
       imageUrl = uploadedImage?.url;
       imageID = uploadedImage?.public_id;
+    }
+
+    if (req.files?.logo) {
+      const uploadedLogo = await uploadToCloudinary(req.files.logo[0], "seller_logos");
+      logoUrl = uploadedLogo?.url;
+      logoID = uploadedLogo?.public_id;
     }
 
     const newSeller = await prisma.user.create({
@@ -96,6 +105,9 @@ export const addSeller = async (req, res) => {
         role: "seller",
         profile_imge: imageUrl,
         image_public_id: imageID,
+        logo: logoUrl,
+        logo_public_id: logoID,
+        theme_id, 
       },
     });
 
@@ -104,6 +116,7 @@ export const addSeller = async (req, res) => {
     res.status(500).json({ message: "Error creating seller", error: error.message });
   }
 };
+
 
 
 // update seller
