@@ -24,6 +24,7 @@ model User {
   resetToken          String?
   resetTokenExpiresAt DateTime?
   logo                String?
+  logo_public_id    String?
   profile_imge        String?
   theme_id            String?
   image_public_id     String?
