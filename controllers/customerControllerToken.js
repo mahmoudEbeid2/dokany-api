@@ -8,8 +8,6 @@ export async function getCustomerByToken(req, res) {
   if (!role === "customer")
     return res.status(403).json({ message: "Access denied. Customers only." });
   try {
-    console.log("Decoded Token:", req.user);
-
     const id = req.user.id;
 
     const customer = await prisma.customer.findUnique({ where: { id } });

@@ -26,7 +26,6 @@ export const addProduct = async (req, res) => {
       }
     }
 
-
     const product = await prisma.product.create({
       data: {
         title,
@@ -37,11 +36,10 @@ export const addProduct = async (req, res) => {
         status,
         seller_id: user.id,
         category_id,
-
       },
     });
 
-  //   upload images
+    //   upload images
     const product_id = product.id;
 
     for (const file of files) {
@@ -53,7 +51,6 @@ export const addProduct = async (req, res) => {
           image: imageData.url,
           product_id,
           image_public_id: imageData.public_id,
-
         },
       });
     }
@@ -126,7 +123,6 @@ export const getProductsBySubdomain = async (req, res) => {
     if (!seller) return res.status(404).json({ error: "Seller not found" });
 
     const products = await prisma.product.findMany({
-    
       where: { seller_id: seller.id },
       skip,
       take: pageSize,
@@ -136,7 +132,6 @@ export const getProductsBySubdomain = async (req, res) => {
         reviews: true,
         cart: true,
         favorites: true,
-        // orders: true,
       },
     });
     res.status(200).json(products);
@@ -145,7 +140,6 @@ export const getProductsBySubdomain = async (req, res) => {
     res.status(500).json({ error: "Something went wrong" });
   }
 };
-
 
 export const getDiscountedProductsBySeller = async (req, res) => {
   try {
@@ -167,7 +161,6 @@ export const getDiscountedProductsBySeller = async (req, res) => {
         reviews: true,
         cart: true,
         favorites: true,
-        // orders: true,
       },
     });
 
@@ -178,14 +171,19 @@ export const getDiscountedProductsBySeller = async (req, res) => {
   }
 };
 
-// Get products/seller/:sellerId
-export const getProductsBySellerId = async (req, res) => {
+// Get products/seller/
+export const getProductsBySeller = async (req, res) => {
+  const user = req.user;
+  if (user.role !== "seller")
+    return res
+      .status(403)
+      .json({ error: "Only sellers can access this route" });
   try {
-     const page = parseInt(req.query.page) || 1;
+    const page = parseInt(req.query.page) || 1;
     const pageSize = 10;
     const skip = (page - 1) * pageSize;
 
-    const { sellerId } = req.params;
+    const sellerId = user.id;
     const products = await prisma.product.findMany({
       where: { seller_id: sellerId },
       skip,
@@ -217,7 +215,8 @@ export const updateProduct = async (req, res) => {
 
   try {
     const { id } = req.params;
-    const { title, description, price, discount, stock, status, category_id } = req.body;
+    const { title, description, price, discount, stock, status, category_id } =
+      req.body;
 
     if (!id) return res.status(400).json({ error: "Product id is required" });
 
@@ -229,10 +228,8 @@ export const updateProduct = async (req, res) => {
     if (!existingProduct)
       return res.status(404).json({ error: "Product not found" });
 
-
     if (existingProduct.seller_id !== user.id)
       return res.status(403).json({ error: "Unauthorized" });
-
 
     if (category_id) {
       const category = await prisma.category.findUnique({
@@ -242,7 +239,6 @@ export const updateProduct = async (req, res) => {
         return res.status(400).json({ error: "Category not found" });
       }
     }
-
 
     const updatedProduct = await prisma.product.update({
       where: { id },
@@ -257,10 +253,9 @@ export const updateProduct = async (req, res) => {
       },
     });
 
- 
     if (files.length > 0) {
       for (const img of existingProduct.images) {
-        const publicId = img.image_public_id
+        const publicId = img.image_public_id;
         await cloudinary.uploader.destroy(publicId);
         await prisma.image.delete({ where: { id: img.id } });
       }
@@ -277,17 +272,22 @@ export const updateProduct = async (req, res) => {
       }
     }
 
-    res.status(200).json({ message: "Product updated successfully", product: updatedProduct });
+    res.status(200).json({
+      message: "Product updated successfully",
+      product: updatedProduct,
+    });
   } catch (error) {
     console.error("Error updating product:", error);
     res.status(500).json({ error: "Something went wrong" });
   }
 };
 
-
-
-
 export const deleteProduct = async (req, res) => {
+  const user = req.user;
+
+  if (user.role !== "seller") {
+    return res.status(403).json({ error: "Only sellers can delete products" });
+  }
   try {
     const { id } = req.params;
     if (!id) return res.status(400).json({ error: "Product id is required" });
@@ -306,7 +306,7 @@ export const deleteProduct = async (req, res) => {
     }
 
     const product = await prisma.product.delete({ where: { id } });
-    res.status(200).json({message: "Product deleted successfully", product});
+    res.status(200).json({ message: "Product deleted successfully", product });
   } catch (error) {
     console.error("Error deleting product:", error);
     res.status(500).json({ error: "Something went wrong" });
@@ -316,7 +316,7 @@ export const deleteProduct = async (req, res) => {
 // costomer search by product title in subdomain
 export const searchProductsByTitle = async (req, res) => {
   try {
-    const {subdomain} = req.body
+    const { subdomain } = req.body;
     const { title } = req.query;
     const isSubdomain = await prisma.user.findUnique({
       where: { subdomain },
@@ -333,13 +333,11 @@ export const searchProductsByTitle = async (req, res) => {
       include: {
         images: true,
       },
-
     });
 
     res.status(200).json({
       products,
-      
-    })
+    });
   } catch (error) {
     console.error("Error searching products by title:", error);
     res.status(500).json({ error: "Something went wrong" });

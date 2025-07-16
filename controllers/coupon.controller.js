@@ -91,7 +91,6 @@ export const checkCoupon = async (req, res) => {
 
 // delete coupon
 export const deleteCoupon = async (req, res) => {
-  console.log("deleteCoupon");
   const user = req.user;
 
   if (user.role !== "seller") {
@@ -99,7 +98,6 @@ export const deleteCoupon = async (req, res) => {
   }
 
   const id = req.params.id;
-  console.log(id);
   try {
     const coupon = await prisma.coupon.findFirst({
       where: {
