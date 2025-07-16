@@ -1,7 +1,7 @@
 import express from "express";
 import upload from "../utils/multer.js";
 import {verifyToken} from "../middlewares/auth.js";
-import { addProduct, deleteProduct, getAllProducts, getDiscountedProductsBySeller, getProductById, getProductsBySellerId, getProductsBySubdomain, updateProduct } from "../controllers/productController.js";
+import { addProduct, deleteProduct, getAllProducts, getDiscountedProductsBySeller, getProductById, getProductsBySellerId, getProductsBySubdomain, searchProductsByTitle, updateProduct } from "../controllers/productController.js";
 
 const router = express.Router();
 
@@ -10,6 +10,9 @@ router.post("/",upload.array("images"),verifyToken, addProduct);
 
 // Get all products route
 router.get("/", verifyToken, getAllProducts);
+
+// search products by title route
+router.get("/search", searchProductsByTitle);
 
 // Get product by ID route
 router.get("/:id", verifyToken, getProductById);
@@ -28,5 +31,6 @@ router.put("/:id",upload.array("images"), verifyToken, updateProduct);
 
 // delete product route
 router.delete("/:id", verifyToken, deleteProduct);
+
 
 export default router;
