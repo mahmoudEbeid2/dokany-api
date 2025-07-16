@@ -6,7 +6,7 @@ import {
   sellerRegisterSchema,
   sellerLoginSchema,
   forgotPasswordSchema,
-  resetPasswordSchema  
+  resetPasswordSchema
 } from '../../validation/seller.validation.js';
 import { uploadToCloudinary } from '../../utils/uploadToCloudinary.js';
 
@@ -49,14 +49,30 @@ export async function register(req, res) {
     // Hash the password before storing it
     const hashedPassword = await hashPassword(password);
 
+    // Logo Image
+    let logoUrl = null;
+    let logoID = null;
+
+    // ارفع صورة اللوجو إذا تم تمريرها كـ req.files.logo
+    if (req.files && req.files.logo) {
+      try {
+        const uploadedLogo = await uploadToCloudinary(req.files.logo[0], "seller_logos");
+        logoUrl = uploadedLogo?.url;
+        logoID = uploadedLogo?.public_id;
+      } catch (uploadError) {
+        console.error("Cloudinary logo upload failed:", uploadError);
+      }
+    }
+
+    // Profile Image
     let imageUrl = null;
     let imageID = null;
     // Check if a file was uploaded (e.g., via multer middleware)
     if (req.file) {
       try {
         // Upload image to Cloudinary.
-        const uploadedImage = await uploadToCloudinary(req.file, "seller_profiles"); 
-        imageUrl = uploadedImage?.url; 
+        const uploadedImage = await uploadToCloudinary(req.file, "seller_profiles");
+        imageUrl = uploadedImage?.url;
         imageID = uploadedImage?.public_id; // Get the URL of the first uploaded image
       } catch (uploadError) {
         // Log upload error but don't block registration if image is optional
@@ -81,6 +97,8 @@ export async function register(req, res) {
         payout_method,
         role: 'seller', // Assign the 'seller' role
         password: hashedPassword,
+        logo:logoUrl,// Store the uploaded logo URL
+        logo_public_id:logoID,// Store the uploaded logo ID
         profile_imge: imageUrl,// Store the uploaded image URL
         image_public_id: imageID, // Store the uploaded image ID
       }
