@@ -136,7 +136,7 @@ export const getProductsBySubdomain = async (req, res) => {
         reviews: true,
         cart: true,
         favorites: true,
-        orders: true,
+        // orders: true,
       },
     });
     res.status(200).json(products);
@@ -163,6 +163,11 @@ export const getDiscountedProductsBySeller = async (req, res) => {
       take: pageSize,
       include: {
         images: true,
+        category: true,
+        reviews: true,
+        cart: true,
+        favorites: true,
+        // orders: true,
       },
     });
 
@@ -176,9 +181,23 @@ export const getDiscountedProductsBySeller = async (req, res) => {
 // Get products/seller/:sellerId
 export const getProductsBySellerId = async (req, res) => {
   try {
+     const page = parseInt(req.query.page) || 1;
+    const pageSize = 10;
+    const skip = (page - 1) * pageSize;
+
     const { sellerId } = req.params;
     const products = await prisma.product.findMany({
       where: { seller_id: sellerId },
+      skip,
+      take: pageSize,
+      include: {
+        images: true,
+        category: true,
+        reviews: true,
+        cart: true,
+        favorites: true,
+        // orders: true,
+      },
     });
     res.status(200).json(products);
   } catch (error) {
@@ -241,7 +260,7 @@ export const updateProduct = async (req, res) => {
  
     if (files.length > 0) {
       for (const img of existingProduct.images) {
-        const publicId = img.image.split("/").pop().split(".")[0];
+        const publicId = img.image_public_id
         await cloudinary.uploader.destroy(publicId);
         await prisma.image.delete({ where: { id: img.id } });
       }
@@ -279,6 +298,12 @@ export const deleteProduct = async (req, res) => {
     });
     if (!existingProduct)
       return res.status(404).json({ error: "Product not found" });
+
+    for (const img of existingProduct.images) {
+      const publicId = img.image_public_id;
+      await cloudinary.uploader.destroy(publicId);
+      await prisma.image.delete({ where: { id: img.id } });
+    }
 
     const product = await prisma.product.delete({ where: { id } });
     res.status(200).json({message: "Product deleted successfully", product});

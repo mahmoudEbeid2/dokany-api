@@ -24,6 +24,8 @@ import sellerRoutes from "./routes/seller.routes.js";
 
 import orderRouter from "./routes/order.routes.js";
 import couponRouter from "./routes/coupon.routes.js";
+
+import themeRoutes from "./routes/themeRoute.js";
 dotenv.config();
 const app = express();
 
@@ -69,5 +71,8 @@ app.use("/api", orderRouter);
 
 // coupon
 app.use("/api", couponRouter);
+
+// theme
+app.use("/themes", themeRoutes);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));

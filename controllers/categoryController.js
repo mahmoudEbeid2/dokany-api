@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
+import cloudinary from "../utils/cloudinary.js";
 const prisma = new PrismaClient();
 
 // add category
@@ -18,6 +19,7 @@ export const addCategory = async (req, res) => {
         name,
         image: categoryImage.url,
         seller_id: user.id,
+        image_public_id: categoryImage.public_id,
       },
     });
     res.status(201).json(category);
@@ -97,6 +99,11 @@ export const updateCategory = async (req, res) => {
         return res.status(404).json({ error: "Category not found" });
       }
   
+      if(file){
+        if (category.image_public_id) {
+          await cloudinary.uploader.destroy(category.image_public_id);
+        }
+      }
       
 
     const imageData = await uploadToCloudinary(file, "category_images");
@@ -126,7 +133,10 @@ export const deleteCategory = async (req, res) => {
       if (!category) {
         return res.status(404).json({ error: "Category not found" });
       }
-  
+      
+      if (category.image_public_id) {
+        await cloudinary.uploader.destroy(category.image_public_id);
+      }
       await prisma.category.delete({ where: { id } });
   
       res.status(200).json({ message: "Category deleted successfully" });
