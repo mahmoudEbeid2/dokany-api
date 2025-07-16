@@ -53,10 +53,10 @@ export async function register(req, res) {
     let logoUrl = null;
     let logoID = null;
 
-    // Logo Image
-    if (req.file) {
+    // Get logo file
+    if (req.files?.logo?.[0]) {
       try {
-        const uploadedLogo = await uploadToCloudinary(req.file, "seller_logos");
+        const uploadedLogo = await uploadToCloudinary(req.files.logo[0], "seller_logos");
         logoUrl = uploadedLogo?.url;
         logoID = uploadedLogo?.public_id;
       } catch (uploadError) {
@@ -67,20 +67,28 @@ export async function register(req, res) {
     // Profile Image
     let imageUrl = null;
     let imageID = null;
-    // Check if a file was uploaded (e.g., via multer middleware)
-    if (req.file) {
+    // Get logo file
+    if (req.files?.logo?.[0]) {
       try {
-        // Upload image to Cloudinary.
-        const uploadedImage = await uploadToCloudinary(req.file, "seller_profiles");
-        imageUrl = uploadedImage?.url;
-        imageID = uploadedImage?.public_id; // Get the URL of the first uploaded image
+        const uploadedLogo = await uploadToCloudinary(req.files.logo[0], "seller_logos");
+        logoUrl = uploadedLogo?.url;
+        logoID = uploadedLogo?.public_id;
       } catch (uploadError) {
-        // Log upload error but don't block registration if image is optional
-        console.error("Cloudinary upload failed:", uploadError);
-        // Optionally, return an error if image upload is mandatory
-        // return res.status(500).json({ error: 'Failed to upload profile image' });
+        console.error("Cloudinary logo upload failed:", uploadError);
       }
     }
+
+    // Get profile image file
+    if (req.files?.profile_imge?.[0]) {
+      try {
+        const uploadedImage = await uploadToCloudinary(req.files.profile_imge[0], "seller_profiles");
+        imageUrl = uploadedImage?.url;
+        imageID = uploadedImage?.public_id;
+      } catch (uploadError) {
+        console.error("Cloudinary upload failed:", uploadError);
+      }
+    }
+
 
     // Create the new seller user in the database
     const seller = await prisma.user.create({
@@ -97,8 +105,8 @@ export async function register(req, res) {
         payout_method,
         role: 'seller', // Assign the 'seller' role
         password: hashedPassword,
-        logo:logoUrl,// Store the uploaded logo URL
-        logo_public_id:logoID,// Store the uploaded logo ID
+        logo: logoUrl,// Store the uploaded logo URL
+        logo_public_id: logoID,// Store the uploaded logo ID
         profile_imge: imageUrl,// Store the uploaded image URL
         image_public_id: imageID, // Store the uploaded image ID
       }
