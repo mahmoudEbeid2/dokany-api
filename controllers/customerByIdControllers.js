@@ -4,6 +4,9 @@ import cloudinary from "../utils/cloudinary.js";
 
 // Get customer by ID
 export const getCustomerById = async (req, res) => {
+  const role = req.user.role;
+  if (!role === "seller")
+    return res.status(403).json({ message: "Access denied. Sellers only." });
   try {
     const { id } = req.params;
     const customer = await prisma.customer.findUnique({ where: { id } });
@@ -21,7 +24,9 @@ export const getCustomerById = async (req, res) => {
 export const updateCustomerById = async (req, res) => {
   const { id } = req.params;
   const file = req.file;
-
+  const role = req.user.role;
+  if (!role === "seller")
+    return res.status(403).json({ message: "Access denied. Sellers only." });
   try {
     const customer = await prisma.customer.findUnique({ where: { id } });
     if (!customer)
@@ -52,6 +57,10 @@ export const updateCustomerById = async (req, res) => {
 
 // Delete customer by ID
 export const deleteCustomerById = async (req, res) => {
+  const role = req.user.role;
+  if (!role === "seller")
+    return res.status(403).json({ message: "Access denied. Sellers only." });
+
   const { id } = req.params;
 
   try {

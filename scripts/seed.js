@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config(); // ⬅️ ده اللي بيخلّي Prisma يعرف DATABASE_URL
+dotenv.config(); 
 
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
@@ -10,6 +10,7 @@ const seed = async () => {
   try {
     const password = await bcrypt.hash("12345678", 10);
 
+    // ✅ Admin
     await prisma.user.create({
       data: {
         user_name: "admin",
@@ -25,7 +26,8 @@ const seed = async () => {
       },
     });
 
-    await prisma.user.create({
+    // ✅ Seller 1
+    const seller1 = await prisma.user.create({
       data: {
         user_name: "seller1",
         f_name: "Seller",
@@ -42,6 +44,7 @@ const seed = async () => {
       },
     });
 
+    // ✅ Seller 2
     await prisma.user.create({
       data: {
         user_name: "seller2",
@@ -59,9 +62,46 @@ const seed = async () => {
       },
     });
 
-    console.log(" Seed done: Admin and Sellers added.");
+   // Customer for seller1
+await prisma.customer.create({
+  data: {
+    user_name: "omnia1",
+    f_name: "Omnia",
+    l_name: "One",
+    email: "omnia1@dokany.com",
+    phone: "01012345671",
+    city: "City1",
+    governorate: "Gov1",
+    country: "Egypt",
+    password,
+    seller_id: seller1.id,
+  },
+});
+
+// Customer for seller2
+const seller2 = await prisma.user.findUnique({
+  where: { email: "seller2@dokany.com" }, // أو ممكن تاخديه من create لو حفظتيه فمتغير
+});
+
+await prisma.customer.create({
+  data: {
+    user_name: "omnia2",
+    f_name: "Omnia",
+    l_name: "Two",
+    email: "omnia2@dokany.com",
+    phone: "01012345672",
+    city: "City2",
+    governorate: "Gov2",
+    country: "Egypt",
+    password,
+    seller_id: seller2.id,
+  },
+});
+
+
+    console.log("✅ Seed done: Admin, Sellers, and Customer added.");
   } catch (error) {
-    console.error(" Error seeding data:", error);
+    console.error("❌ Error seeding data:", error);
   } finally {
     await prisma.$disconnect();
   }

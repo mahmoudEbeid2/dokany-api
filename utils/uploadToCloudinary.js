@@ -24,3 +24,4 @@ export const uploadToCloudinary = async (files, folder = "uploads") => {
 
   return uploaded.length === 1 ? uploaded[0] : uploaded;
 };
+
