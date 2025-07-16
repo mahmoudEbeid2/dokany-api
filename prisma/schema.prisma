@@ -24,10 +24,10 @@ model User {
   resetToken          String?
   resetTokenExpiresAt DateTime?
   logo                String?
-  logo_public_id    String?
   profile_imge        String?
   theme_id            String?
   image_public_id     String?
+  logo_public_id      String?
   categories          Category[]
   coupons             Coupon[]
   customers           Customer[]
@@ -130,11 +130,11 @@ model Payout {
 }
 
 model Theme {
-  id            String @id @default(cuid())
-  name          String
-  preview_image String
-  image_public_id    String?
-  users         User[]
+  id              String  @id @default(cuid())
+  name            String
+  preview_image   String
+  image_public_id String?
+  users           User[]
 }
 
 model Cart {
@@ -166,11 +166,11 @@ model Review {
 }
 
 model Category {
-  id        String    @id @default(cuid())
-  name      String
-  image     String
-  image_public_id    String?
-  seller_id String
-  seller    User      @relation(fields: [seller_id], references: [id], onDelete: Cascade)
-  products  Product[]
+  id              String    @id @default(cuid())
+  name            String
+  image           String
+  seller_id       String
+  image_public_id String?
+  seller          User      @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  products        Product[]
 }
