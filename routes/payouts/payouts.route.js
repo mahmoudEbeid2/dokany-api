@@ -16,9 +16,9 @@ const router = express.Router();
 // GET /api/payouts
 router.get("/payouts", verifyToken, isAdmin, getPayouts);
 
-// GET /api/payouts/seller/:sellerId
+// GET /api/payouts/seller/
 
-router.get("/payouts/seller/:sellerId", verifyToken, isSeller, getSellerPayouts);
+router.get("/payouts/seller/", verifyToken, isSeller, getSellerPayouts);
 
 // POST /api/payouts
 
@@ -33,4 +33,3 @@ router.put("/payouts/:id/status", verifyToken, isAdmin, updatePayoutStatus);
 router.delete("/payouts/:id", verifyToken, isAdmin, deletePayout);
 
 export default router;
-

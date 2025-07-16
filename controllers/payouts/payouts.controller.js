@@ -28,15 +28,16 @@ export const getPayouts = async (req, res) => {
   }
 };
 
-
-
-
-// GET /payouts/seller/:sellerId
+// GET /payouts/seller/
 export const getSellerPayouts = async (req, res) => {
-  const { sellerId } = req.params;
+  const user = req.user;
+  if (user.role !== "seller") {
+    return res.status(403).json({ message: "Access denied. Sellers only." });
+  }
+  const sellerId = user.id;
   const payouts = await prisma.payout.findMany({
     where: { seller_id: sellerId },
-    orderBy: { date: 'desc' },
+    orderBy: { date: "desc" },
   });
   res.json(payouts);
 };

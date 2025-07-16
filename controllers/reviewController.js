@@ -37,9 +37,7 @@ export const getProductReviews = async (req, res) => {
             select:{
                 f_name: true,
                 l_name: true,
-                user_name: true,
-                email: true,
-          
+                profile_imge: true
             }
         } },
       });

@@ -38,8 +38,8 @@ export const getRecommendedProducts = async (req, res) => {
       where: { id },
       include: {
         products: {
-            orderBy:{discount:"desc"},
-            include:{images:true, reviews:true, cart:true, favorites:true}
+          orderBy: { discount: "desc" },
+          include: { images: true, reviews: true, cart: true, favorites: true },
         },
       },
     });
@@ -51,9 +51,12 @@ export const getRecommendedProducts = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch recommended products" });
   }
 };
-// get categories by seller id
-export const getCategoriesBySellerId = async (req, res) => {
-  const { sellserId } = req.params;
+// get categories by seller token
+export const getCategoriesBySeller = async (req, res) => {
+  const user = req.user;
+  const sellserId = user.id;
+  if (user.role !== "seller")
+    return res.status(403).json({ error: "Only sellers can add categories" });
   try {
     const categories = await prisma.category.findMany({
       where: { seller_id: sellserId },
@@ -69,11 +72,11 @@ export const getCategoriesBySellerId = async (req, res) => {
 export const getCategoriesBySubdomain = async (req, res) => {
   const { subdomain } = req.params;
   try {
-const seller = await prisma.user.findUnique({
-  where: { subdomain },
-});
+    const seller = await prisma.user.findUnique({
+      where: { subdomain },
+    });
 
-if(!seller) return res.status(404).json({ error: "Seller not found" });
+    if (!seller) return res.status(404).json({ error: "Seller not found" });
 
     const categories = await prisma.category.findMany({
       where: { seller_id: seller.id },
@@ -85,63 +88,74 @@ if(!seller) return res.status(404).json({ error: "Seller not found" });
   }
 };
 
-// udate category 
+// udate category
 
 export const updateCategory = async (req, res) => {
-    const { id } = req.params;
-    const { name } = req.body;
-    const file = req.file;
-  
-    try {
-      const category = await prisma.category.findUnique({ where: { id } });
-  
-      if (!category) {
-        return res.status(404).json({ error: "Category not found" });
-      }
-  
-      if(file){
-        if (category.image_public_id) {
-          await cloudinary.uploader.destroy(category.image_public_id);
-        }
-      }
-      
+  const { id } = req.params;
+  const { name } = req.body;
+  const file = req.file;
 
-    const imageData = await uploadToCloudinary(file, "category_images");
-  
-      const updatedCategory = await prisma.category.update({
-        where: { id },
-        data: {
-          name,
-          image: imageData.url
-        },
-      });
-  
-      res.status(200).json(updatedCategory);
-    } catch (error) {
-      console.error("Error updating category:", error);
-      res.status(500).json({ error: "Failed to update category" });
+  const user = req.user;
+  if (user.role !== "seller")
+    return res
+      .status(403)
+      .json({ error: "Only sellers can update categories" });
+
+  try {
+    const category = await prisma.category.findUnique({ where: { id } });
+
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
     }
-};
 
-// delete category 
-export const deleteCategory = async (req, res) => {
-    const { id } = req.params;
-  
-    try {
-      const category = await prisma.category.findUnique({ where: { id } });
-  
-      if (!category) {
-        return res.status(404).json({ error: "Category not found" });
-      }
-      
+    if (file) {
       if (category.image_public_id) {
         await cloudinary.uploader.destroy(category.image_public_id);
       }
-      await prisma.category.delete({ where: { id } });
-  
-      res.status(200).json({ message: "Category deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting category:", error);
-      res.status(500).json({ error: "Failed to delete category" });
     }
-  };
+
+    const imageData = await uploadToCloudinary(file, "category_images");
+
+    const updatedCategory = await prisma.category.update({
+      where: { id },
+      data: {
+        name,
+        image: imageData.url,
+      },
+    });
+
+    res.status(200).json(updatedCategory);
+  } catch (error) {
+    console.error("Error updating category:", error);
+    res.status(500).json({ error: "Failed to update category" });
+  }
+};
+
+// delete category
+export const deleteCategory = async (req, res) => {
+  const user = req.user;
+
+  if (user.role !== "seller")
+    return res
+      .status(403)
+      .json({ error: "Only sellers can delete categories" });
+  const { id } = req.params;
+
+  try {
+    const category = await prisma.category.findUnique({ where: { id } });
+
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    if (category.image_public_id) {
+      await cloudinary.uploader.destroy(category.image_public_id);
+    }
+    await prisma.category.delete({ where: { id } });
+
+    res.status(200).json({ message: "Category deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    res.status(500).json({ error: "Failed to delete category" });
+  }
+};
