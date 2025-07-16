@@ -32,6 +32,8 @@ const { sign, verify } = jwt;
 
 export async function register(req, res) {
   // Validate request body against adminRegisterSchema
+  console.log("lollllllllllllllllll");
+  
   const validation = adminRegisterSchema.safeParse(req.body);
   if (!validation.success) {
     // Return detailed validation errors
@@ -90,6 +92,8 @@ export async function register(req, res) {
         image_public_id: imageID ,// Store the uploaded image public ID
       }
     });
+    console.log(user);
+    
 
     res.status(201).json({ message: 'Admin registered successfully', user: { id: user.id, email: user.email, role: user.role } }); // Return limited user info
   } catch (err) {

@@ -1,25 +1,22 @@
-// داخل controllers/admin.controller.js
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { uploadToCloudinary } from "../../utils/uploadToCloudinary.js";
+import cloudinary from "../../utils/cloudinary.js";
 
 const prisma = new PrismaClient();
+
+const isStrongPassword = (password) => {
+  return /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/.test(password);
+};
+const isValidEmail = (email) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
 
 //  GET /admin/admins
 export const getAllAdmins = async (req, res) => {
   try {
     const admins = await prisma.user.findMany({
       where: { role: "admin" },
-      select: {
-        id: true,
-        user_name: true,
-        f_name: true,
-        l_name: true,
-        email: true,
-        phone: true,
-        city : true,
-        governorate: true,
-        country : true,
-      },
     });
 
     res.json({ admins });
@@ -27,6 +24,7 @@ export const getAllAdmins = async (req, res) => {
     res.status(500).json({ message: "Error fetching admins", error: error.message });
   }
 };
+
 
 //  GET /admin/admins/:id
 export const getAdminById = async (req, res) => {
@@ -46,12 +44,46 @@ export const getAdminById = async (req, res) => {
   }
 };
 
-//  POST /admin/admins
 export const addAdmin = async (req, res) => {
   try {
     const { user_name, f_name, l_name, email, phone, password } = req.body;
 
+    // Validate email
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    // Check duplicates
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { user_name }],
+      },
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ message: "Username or email already exists" });
+    }
+
+    // Validate phone
+    if (!/^\d{10,15}$/.test(phone)) {
+      return res.status(400).json({ message: "Invalid phone number" });
+    }
+
+    // Validate password
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({ message: "Password must be at least 8 characters long and contain letters and numbers" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    let imageUrl = null;
+    let imageID = null;
+
+    if (req.file) {
+      const uploadedImage = await uploadToCloudinary(req.file, "admin_profiles");
+      imageUrl = uploadedImage?.url;
+      imageID = uploadedImage?.public_id;
+    }
 
     const newAdmin = await prisma.user.create({
       data: {
@@ -65,6 +97,8 @@ export const addAdmin = async (req, res) => {
         city: "Cairo",
         governorate: "Cairo",
         country: "Egypt",
+        profile_imge: imageUrl,
+        image_public_id: imageID,
       },
     });
 
@@ -74,27 +108,45 @@ export const addAdmin = async (req, res) => {
   }
 };
 
-// PUT /admin/admins/:id
+
 export const updateAdmin = async (req, res) => {
   const { id } = req.params;
-  const { user_name, f_name, l_name, email, phone } = req.body;
+  const file = req.file;
 
   try {
-    const updated = await prisma.user.update({
+    const admin = await prisma.user.findUnique({ where: { id } });
+
+    if (!admin || admin.role !== "admin") {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    const updateData = { ...req.body };
+
+    if (updateData.email && !isValidEmail(updateData.email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    if (updateData.phone && !/^\d{10,15}$/.test(updateData.phone)) {
+      return res.status(400).json({ message: "Invalid phone number" });
+    }
+
+    if (file) {
+      const imageData = await uploadToCloudinary(file, "admin_profiles");
+
+      if (admin.image_public_id) {
+        await cloudinary.uploader.destroy(admin.image_public_id);
+      }
+
+      updateData.profile_imge = imageData.url;
+      updateData.image_public_id = imageData.public_id;
+    }
+
+    const updatedAdmin = await prisma.user.update({
       where: { id },
-      data: {
-        user_name,
-        f_name,
-        l_name,
-        email,
-        phone,
-         city ,
-        governorate,
-        country ,
-      },
+      data: updateData,
     });
 
-    res.json(updated);
+    res.status(200).json(updatedAdmin);
   } catch (error) {
     res.status(500).json({ message: "Error updating admin", error: error.message });
   }
@@ -135,17 +187,17 @@ export const searchAdmins = async (req, res) => {
         email: true,
         phone: true,
         role: true,
-        city : true,
+        city: true,
         governorate: true,
-        country : true,
+        country: true,
       },
     });
 
-    if (admins.length === 0) {
+    if (!admins.length) {
       return res.status(404).json({ message: "Admin not found" });
     }
 
-    res.json({ admins });
+    res.status(200).json({ admins });
   } catch (err) {
     res.status(500).json({ message: "Search error", error: err.message });
   }
