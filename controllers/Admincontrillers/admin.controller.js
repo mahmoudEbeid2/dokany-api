@@ -202,3 +202,30 @@ export const searchAdmins = async (req, res) => {
     res.status(500).json({ message: "Search error", error: err.message });
   }
 };
+// getAdminDashboardStats
+export const getAdminDashboardStats = async (req, res) => {
+  try {
+    const sellersCount = await prisma.user.count({
+      where: { role: "seller" },
+    });
+
+    const customersCount = await prisma.customer.count();
+
+    const productsCount = await prisma.product.count();
+
+    const totalEarningsResult = await prisma.order.aggregate({
+      _sum: { total_price: true },
+    });
+
+    const totalEarnings = totalEarningsResult._sum.total_price || 0;
+
+    res.status(200).json({
+      sellersCount,
+      customersCount,
+      productsCount,
+      totalEarnings,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching dashboard stats", error: error.message });
+  }
+};

@@ -17,6 +17,7 @@ import {
   updateAdmin,
   deleteAdmin,
   searchAdmins,
+  getAdminDashboardStats
 } from "../../controllers/Admincontrillers/admin.controller.js";
 import upload from '../../utils/multer.js';
 
@@ -52,5 +53,8 @@ router.post("/admins", verifyToken, isAdmin, upload.single('profile_imge'), addA
 router.put("/admins/:id", verifyToken, isAdmin, upload.single('profile_imge'), updateAdmin);
 // deleteAdmin http://localhost:4000/admin/admins/id
 router.delete("/admins/:id", verifyToken, isAdmin, deleteAdmin);
+
+router.get("/dashboard-stats", verifyToken, isAdmin, getAdminDashboardStats);
+
 
 export default router;
