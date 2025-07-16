@@ -31,8 +31,8 @@ router.get("/sellers", verifyToken, isAdmin, getAllSellers);
 // getgetSellerById http://localhost:4000/admin/seller/id
 router.get("/sellers/:id", verifyToken, isAdmin, getSellerById);
 // AddSeller http://localhost:4000/admin/sellers
-router.post("/sellers", verifyToken, isAdmin,upload.single('profile_imge'), addSeller);
-
+router.post("/sellers",verifyToken,isAdmin,upload.fields([{ name: "profile_imge", maxCount: 1 },{ name: "logo", maxCount: 1 },]),addSeller
+);
 // updateseller http://localhost:4000/admin/sellers/id
 router.put("/sellers/:id", verifyToken, isAdmin, upload.single('profile_imge'), updateSeller);
 // deleteseller http://localhost:4000/admin/sellers/id
