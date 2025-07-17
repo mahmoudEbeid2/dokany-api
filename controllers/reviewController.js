@@ -12,6 +12,13 @@ export const addReview = async (req, res) => {
     return res.status(403).json({ error: "only customers can add review" });
     
     try {
+      const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
       const review = await prisma.review.create({
         data: { 
             product_id: productId,
@@ -57,9 +64,7 @@ export const deleteReview = async (req, res) => {
       const review = await prisma.review.findUnique({ where: { id: reviewId } });
       if(!review) return res.status(404).json({ error: "Review not found" });
 
-        // seller and customer can delete their own review
-      if(review.customer_id !==user.id && user.role!=="seller")
-      return res.status(403).json({ error: "Not authorized to delete this review" });
+      if(user.id !== review.customer_id) return res.status(403).json({ error: "Unauthorized" });
       await prisma.review.delete({ where: { id: reviewId } });
 
       res.status(200).json({ message: "Review deleted successfully", review });
