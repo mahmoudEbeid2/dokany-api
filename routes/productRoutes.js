@@ -4,7 +4,7 @@ import { verifyToken } from "../middlewares/auth.js";
 import {
   addProduct,
   deleteProduct,
-  getAllProducts,
+//   getAllProducts,
   getDiscountedProductsBySeller,
   getProductById,
   getProductsBySeller,
@@ -19,7 +19,7 @@ const router = express.Router();
 router.post("/", upload.array("images"), verifyToken, addProduct);
 
 // Get all products route
-router.get("/", verifyToken, getAllProducts);
+// router.get("/", verifyToken, getAllProducts);
 
 // search products by title route
 router.get("/search", searchProductsByTitle);
