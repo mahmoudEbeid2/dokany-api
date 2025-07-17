@@ -62,27 +62,27 @@ export const addProduct = async (req, res) => {
   }
 };
 
-export const getAllProducts = async (req, res) => {
-  try {
-    const products = await prisma.product.findMany({
-      include: {
-        category: true,
-        seller: true,
-        images: true,
-        coupons: true,
-        reviews: true,
-        cart: true,
-        favorites: true,
-        // orders: true,
-      },
-    });
+// export const getAllProducts = async (req, res) => {
+//   try {
+//     const products = await prisma.product.findMany({
+//       include: {
+//         category: true,
+//         seller: true,
+//         images: true,
+//         coupons: true,
+//         reviews: true,
+//         cart: true,
+//         favorites: true,
+//         // orders: true,
+//       },
+//     });
 
-    res.status(200).json(products);
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    res.status(500).json({ error: "failed to fetch all products" });
-  }
-};
+//     res.status(200).json(products);
+//   } catch (error) {
+//     console.error("Error fetching products:", error);
+//     res.status(500).json({ error: "failed to fetch all products" });
+//   }
+// };
 
 export const getProductById = async (req, res) => {
   try {
@@ -91,12 +91,24 @@ export const getProductById = async (req, res) => {
       where: { id },
       include: {
         category: true,
-        seller: true,
+        seller: {
+          select: {
+            subdomain: true,
+            logo: true,
+            f_name: true,
+            l_name: true,
+            email: true,
+            phone: true,
+            city: true,
+            governorate: true,
+            country: true,
+          },
+        },
         images: true,
         coupons: true,
         reviews: true,
-        cart: true,
-        favorites: true,
+        // cart: true,
+        // favorites: true,
       },
     });
 
@@ -130,8 +142,17 @@ export const getProductsBySubdomain = async (req, res) => {
         images: true,
         category: true,
         reviews: true,
-        cart: true,
-        favorites: true,
+        seller: {
+          select: {
+            subdomain: true,
+            logo: true,
+            f_name: true,
+            l_name: true,
+            email: true,
+          },
+        }
+        // cart: true,
+        // favorites: true,
       },
     });
     res.status(200).json(products);
@@ -159,8 +180,17 @@ export const getDiscountedProductsBySeller = async (req, res) => {
         images: true,
         category: true,
         reviews: true,
-        cart: true,
-        favorites: true,
+        seller:{
+          select: {
+            subdomain: true,
+            logo: true,
+            f_name: true,
+            l_name: true,
+            email: true,
+          },
+        }
+        // cart: true,
+        // favorites: true,
       },
     });
 
@@ -192,8 +222,17 @@ export const getProductsBySeller = async (req, res) => {
         images: true,
         category: true,
         reviews: true,
-        cart: true,
-        favorites: true,
+        seller:{
+          select: {
+            subdomain: true,
+            logo: true,
+            f_name: true,
+            l_name: true,
+            email: true,
+          },
+        }
+        // cart: true,
+        // favorites: true,
         // orders: true,
       },
     });
