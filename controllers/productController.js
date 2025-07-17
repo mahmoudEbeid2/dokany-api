@@ -73,14 +73,14 @@ export const getAllProducts = async (req, res) => {
         reviews: true,
         cart: true,
         favorites: true,
-        orders: true,
+        // orders: true,
       },
     });
 
     res.status(200).json(products);
   } catch (error) {
     console.error("Error fetching products:", error);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: "failed to fetch all products" });
   }
 };
 
