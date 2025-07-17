@@ -17,10 +17,15 @@ import customerRouterToken from "./routes/customer/customerByToken.routes.js";
 
 import cartRoutes from "./routes/cart.routes.js";
 import favRoutes from "./routes/favorites.routes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
 
 import sellerRoutes from "./routes/seller.routes.js";
 
 import orderRouter from "./routes/order.routes.js";
+import couponRouter from "./routes/coupon.routes.js";
+
+import themeRoutes from "./routes/themeRoute.js";
 dotenv.config();
 const app = express();
 
@@ -54,10 +59,20 @@ app.use("/api", payoutRoutes);
 app.use("/", cartRoutes);
 // fav
 app.use("/", favRoutes);
+// reviews
+app.use("/reviews", reviewRoutes );
+// category
+app.use("/categories", categoryRoutes );
 
 // seller
 app.use("/api", sellerRoutes);
 // order
 app.use("/api", orderRouter);
+
+// coupon
+app.use("/api", couponRouter);
+
+// theme
+app.use("/themes", themeRoutes);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));

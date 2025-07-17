@@ -17,7 +17,10 @@ import {
   updateAdmin,
   deleteAdmin,
   searchAdmins,
+  getAdminDashboardStats
 } from "../../controllers/Admincontrillers/admin.controller.js";
+import upload from '../../utils/multer.js';
+
 
 const router = express.Router();
 
@@ -29,26 +32,29 @@ router.get("/sellers", verifyToken, isAdmin, getAllSellers);
 // getgetSellerById http://localhost:4000/admin/seller/id
 router.get("/sellers/:id", verifyToken, isAdmin, getSellerById);
 // AddSeller http://localhost:4000/admin/sellers
-router.post("/sellers", verifyToken, isAdmin, addSeller);
-
+router.post("/sellers",verifyToken,isAdmin,upload.fields([{ name: "profile_imge", maxCount: 1 },{ name: "logo", maxCount: 1 },]),addSeller
+);
 // updateseller http://localhost:4000/admin/sellers/id
-router.put("/sellers/:id", verifyToken, isAdmin, updateSeller);
+router.put("/sellers/:id", verifyToken, isAdmin, upload.single('profile_imge'), updateSeller);
 // deleteseller http://localhost:4000/admin/sellers/id
 router.delete("/sellers/:id", verifyToken, isAdmin, deleteSeller);
 
 // Admin Management
 
 // searchSellers http://localhost:4000/admin/sellers/search?query=####
-router.get("/search", verifyToken, isAdmin, searchAdmins);
+router.get("/admins/search", verifyToken, isAdmin, searchAdmins);
 // getAllSAdmins http://localhost:4000/admin/admins
 router.get("/admins", verifyToken, isAdmin, getAllAdmins);
 // getgetAdminById http://localhost:4000/admin/admins/id
 router.get("/admins/:id", verifyToken, isAdmin, getAdminById);
 // AddAdmin http://localhost:4000/admin/admins
-router.post("/admins", verifyToken, isAdmin, addAdmin);
+router.post("/admins", verifyToken, isAdmin, upload.single('profile_imge'), addAdmin);
 // updateAdmin http://localhost:4000/admin/admins/id
-router.put("/admins/:id", verifyToken, isAdmin, updateAdmin);
+router.put("/admins/:id", verifyToken, isAdmin, upload.single('profile_imge'), updateAdmin);
 // deleteAdmin http://localhost:4000/admin/admins/id
 router.delete("/admins/:id", verifyToken, isAdmin, deleteAdmin);
+
+router.get("/dashboard-stats", verifyToken, isAdmin, getAdminDashboardStats);
+
 
 export default router;

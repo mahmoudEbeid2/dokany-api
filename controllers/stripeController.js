@@ -1,5 +1,7 @@
 import stripe from "../utils/stripe.js";
 import prisma from "../config/db.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 export const createCheckoutSession = async (req, res) => {
   const user = req.user;
@@ -42,8 +44,8 @@ export const createCheckoutSession = async (req, res) => {
         quantity: item.quantity,
       })),
       mode: "payment",
-      success_url: "http://localhost:4000/success",
-      cancel_url: "http://localhost:4000/cancel",
+      success_url: process.env.SUCCESS_PAGE_LINK,
+      cancel_url: process.env.CANCEL_PAGE_LINK,
       metadata: {
         items: JSON.stringify(items),
         userId: user.id,

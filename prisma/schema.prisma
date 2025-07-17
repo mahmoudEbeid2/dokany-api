@@ -25,8 +25,9 @@ model User {
   resetTokenExpiresAt DateTime?
   logo                String?
   profile_imge        String?
-  image_public_id  String?
   theme_id            String?
+  image_public_id     String?
+  logo_public_id      String?
   categories          Category[]
   coupons             Coupon[]
   customers           Customer[]
@@ -36,11 +37,11 @@ model User {
 }
 
 model Customer {
-  id                  String    @id @default(cuid())
-  user_name           String    @unique
+  id                  String     @id @default(cuid())
+  user_name           String     @unique
   f_name              String
   l_name              String
-  email               String   @unique
+  email               String     @unique
   phone               String
   city                String
   governorate         String
@@ -49,19 +50,17 @@ model Customer {
   resetToken          String?
   resetTokenExpiresAt DateTime?
   seller_id           String
-
-  profile_imge String?
-   image_public_id  String?
-
-  cart      Cart[]
-  seller    User       @relation(fields: [seller_id], references: [id],onDelete: Cascade)
-  favorites Favorite[]
-  orders    Order[]
-  reviews   Review[]
+  image_public_id     String?
+  profile_imge        String?
+  cart                Cart[]
+  seller              User       @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  favorites           Favorite[]
+  orders              Order[]
+  reviews             Review[]
 }
 
 model Product {
-  id          String     @id @default(cuid())
+  id          String      @id @default(cuid())
   title       String
   description String
   price       Float
@@ -70,46 +69,44 @@ model Product {
   status      String
   seller_id   String
   category_id String?
-  items OrderItem[]
   cart        Cart[]
   coupons     Coupon[]
   favorites   Favorite[]
   images      Image[]
-  category    Category?  @relation(fields: [category_id], references: [id],onDelete: Cascade)
-  seller      User       @relation(fields: [seller_id], references: [id],onDelete: Cascade)
+  items       OrderItem[]
+  category    Category?   @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  seller      User        @relation(fields: [seller_id], references: [id], onDelete: Cascade)
   reviews     Review[]
 }
 
 model Image {
-  id         String  @id @default(cuid())
-  product_id String
-  image      String
-  image_public_id  String?
-  product    Product @relation(fields: [product_id], references: [id],onDelete: Cascade)
+  id              String  @id @default(cuid())
+  product_id      String
+  image           String
+  image_public_id String?
+  product         Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
 }
 
 model Order {
-  id                String   @id @default(cuid())
+  id                String      @id @default(cuid())
   total_price       Float
   order_status      String
   payment_reference String
   customer_id       String
+  date              DateTime    @default(now())
+  customer          Customer    @relation(fields: [customer_id], references: [id])
   items             OrderItem[]
-  date              DateTime @default(now())
-  customer          Customer @relation(fields: [customer_id], references: [id])
 }
 
 model OrderItem {
-  id         String   @id @default(cuid())
+  id         String  @id @default(cuid())
   order_id   String
   product_id String
   quantity   Int
-  price      Float     
-
-  order   Order   @relation(fields: [order_id], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  price      Float
+  order      Order   @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
 }
-
 
 model Coupon {
   id              String   @id @default(cuid())
@@ -119,7 +116,7 @@ model Coupon {
   product_id      String
   seller_id       String
   product         Product  @relation(fields: [product_id], references: [id])
-  seller          User     @relation(fields: [seller_id], references: [id],onDelete: Cascade)
+  seller          User     @relation(fields: [seller_id], references: [id], onDelete: Cascade)
 }
 
 model Payout {
@@ -129,14 +126,15 @@ model Payout {
   payout_method String
   seller_id     String
   date          DateTime @default(now())
-  seller        User     @relation(fields: [seller_id], references: [id],onDelete: Cascade)
+  seller        User     @relation(fields: [seller_id], references: [id], onDelete: Cascade)
 }
 
 model Theme {
-  id            String @id @default(cuid())
-  name          String
-  preview_image String
-  users         User[]
+  id              String  @id @default(cuid())
+  name            String
+  preview_image   String
+  image_public_id String?
+  users           User[]
 }
 
 model Cart {
@@ -145,16 +143,16 @@ model Cart {
   customer_id String
   product_id  String
   final_price Float
-  customer    Customer @relation(fields: [customer_id], references: [id],onDelete: Cascade)
-  product     Product  @relation(fields: [product_id], references: [id],onDelete: Cascade)
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
 }
 
 model Favorite {
   id          String   @id @default(cuid())
   customer_id String
   product_id  String
-  customer    Customer @relation(fields: [customer_id], references: [id],onDelete: Cascade)
-  product     Product  @relation(fields: [product_id], references: [id],onDelete: Cascade)
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
 }
 
 model Review {
@@ -163,15 +161,16 @@ model Review {
   rating      Int
   customer_id String
   product_id  String
-  customer    Customer @relation(fields: [customer_id], references: [id],onDelete: Cascade)
-  product     Product  @relation(fields: [product_id], references: [id],onDelete: Cascade)
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
 }
 
 model Category {
-  id        String    @id @default(cuid())
-  name      String
-  image     String
-  seller_id String
-  seller    User      @relation(fields: [seller_id], references: [id],onDelete: Cascade)
-  products  Product[]
+  id              String    @id @default(cuid())
+  name            String
+  image           String
+  seller_id       String
+  image_public_id String?
+  seller          User      @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  products        Product[]
 }

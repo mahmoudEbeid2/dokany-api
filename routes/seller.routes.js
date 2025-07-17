@@ -46,4 +46,5 @@ router.put(
   updateSeller
 );
 
+
 export default router;
