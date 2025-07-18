@@ -17,7 +17,7 @@ import upload from "../utils/multer.js";
 const router = express.Router();
 
 router.get("/seller/id", verifyToken, getSellerById);
-router.get("/seller/subdomain", verifyToken, getSellerBySubdomain);
+router.get("/seller/subdomain/:subdomain", verifyToken, getSellerBySubdomain);
 router.get("/seller/customers", verifyToken, getSellerCustomers);
 router.post(
   "/seller/customers",

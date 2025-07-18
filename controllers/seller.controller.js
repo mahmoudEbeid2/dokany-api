@@ -21,7 +21,7 @@ export const getSellerById = async (req, res) => {
 
 //! ------------ Get Seller By Subdomain-------------
 export const getSellerBySubdomain = async (req, res) => {
-  const { subdomain } = req.user;
+  const { subdomain } = req.params;
   try {
     const seller = await prisma.user.findUnique({
       where: { subdomain },
@@ -182,7 +182,6 @@ export const createCustomer = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 // !------------------------- Update Customer-----------------
 export const updateCustomer = async (req, res) => {
   const { id } = req.params;
