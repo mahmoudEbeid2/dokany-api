@@ -4,7 +4,7 @@ import { verifyToken } from "../middlewares/auth.js";
 import {
   addProduct,
   deleteProduct,
-  getAllProducts,
+  //   getAllProducts,
   getDiscountedProductsBySeller,
   getProductById,
   getProductsBySeller,
@@ -20,11 +20,13 @@ router.get("/seller", getProductsBySeller);
 router.post("/", upload.array("images"), verifyToken, addProduct);
 
 // Get all products route
-router.get("/", verifyToken, getAllProducts);
+// router.get("/", verifyToken, getAllProducts);
 
 // search products by title route
 router.get("/search", searchProductsByTitle);
 
+// Get products/seller/:sellerId
+router.get("/seller", verifyToken, getProductsBySeller);
 // Get product by ID route
 router.get("/:id", getProductById);
 
@@ -41,6 +43,7 @@ router.get(
 // Get products/seller/
 
 // update product route
+router.get("/:id", verifyToken, getProductById);
 router.put("/:id", upload.array("images"), verifyToken, updateProduct);
 
 // delete product route
