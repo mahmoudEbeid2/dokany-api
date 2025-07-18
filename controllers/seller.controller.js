@@ -182,7 +182,6 @@ export const createCustomer = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 // !------------------------- Update Customer-----------------
 export const updateCustomer = async (req, res) => {
   const { id } = req.params;
