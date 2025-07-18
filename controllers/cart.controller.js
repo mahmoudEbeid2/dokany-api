@@ -16,12 +16,15 @@ export const getCustomerCart = async (req, res) => {
       include: { product: true },
     });
 
-    res.json(cart);
+    const finalPrice = cart.reduce((sum, item) => sum + item.final_price, 0);
+
+    res.json({ cart, finalPrice });
   } catch (err) {
     console.error("Error fetching cart:", err);
     res.status(500).json({ error: "Failed to fetch cart" });
   }
 };
+
 
 //  Add product to cart
 export const addToCart = async (req, res) => {
@@ -33,20 +36,39 @@ export const addToCart = async (req, res) => {
   const { product_id, quantity } = req.body;
 
   try {
+    const product = await prisma.product.findUnique({
+      where: { id: product_id },
+    });
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
     const existingItem = await prisma.cart.findFirst({
       where: { customer_id, product_id },
     });
 
+    const itemFinalPrice = quantity * product.price;
+
     if (existingItem) {
+      const newQuantity = existingItem.quantity + quantity;
       const updatedItem = await prisma.cart.update({
         where: { id: existingItem.id },
-        data: { quantity: existingItem.quantity + quantity },
+        data: {
+          quantity: newQuantity,
+          final_price: newQuantity * product.price, 
+        },
       });
       return res.status(200).json(updatedItem);
     }
 
     const newItem = await prisma.cart.create({
-      data: { customer_id, product_id, quantity },
+      data: {
+        customer_id,
+        product_id,
+        quantity,
+        final_price: itemFinalPrice, 
+      },
     });
 
     res.status(201).json(newItem);
@@ -55,6 +77,7 @@ export const addToCart = async (req, res) => {
     res.status(500).json({ error: "Failed to add item to cart" });
   }
 };
+
 
 //  Delete cart item by itemId
 export const deleteCartItem = async (req, res) => {

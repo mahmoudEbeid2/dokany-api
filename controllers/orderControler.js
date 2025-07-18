@@ -24,6 +24,7 @@ export const getAllOrders = async (req, res) => {
             f_name: true,
             l_name: true,
             email: true,
+            phone: true,
             city: true,
             governorate: true,
             country: true,

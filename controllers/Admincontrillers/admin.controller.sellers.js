@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { uploadToCloudinary } from "../../utils/uploadToCloudinary.js";
+import cloudinary from "../../utils/cloudinary.js";
 
 const prisma = new PrismaClient();
 
@@ -7,55 +9,28 @@ const prisma = new PrismaClient();
 export const getAllSellers = async (req, res) => {
   try {
     const sellers = await prisma.user.findMany({
-      where: { role: "seller" },
-      select: {
-        id: true,
-        user_name: true,
-        f_name: true,
-        l_name: true,
-        email: true,
-        phone: true,
-        subdomain: true,
-      },
+      where: { role: "seller" }, // remove select to get all
     });
-
     res.status(200).json({ sellers });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch sellers", details: err.message });
   }
 };
+
 // GET /admin/seller/getSellerById
 export const getSellerById = async (req, res) => {
   const { id } = req.params;
-
   try {
-    const seller = await prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        user_name: true,
-        f_name: true,
-        l_name: true,
-        email: true,
-        phone: true,
-        subdomain: true,
-        city: true,
-        governorate: true,
-        country: true,
-        payout_method: true,
-        role: true
-      },
-    });
-
+    const seller = await prisma.user.findUnique({ where: { id } });
     if (!seller || seller.role !== "seller") {
       return res.status(404).json({ message: "Seller not found" });
     }
-
     res.status(200).json({ seller });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch seller", error: err.message });
   }
 };
+
 // add seller
 export const addSeller = async (req, res) => {
   const {
@@ -70,20 +45,49 @@ export const addSeller = async (req, res) => {
     password,
     subdomain,
     payout_method,
+    theme_id, 
   } = req.body;
 
   try {
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [{ email }, { user_name }],
+        OR: [{ email }, { user_name }, { subdomain }],
       },
     });
 
     if (existingUser) {
-      return res.status(400).json({ message: "Email or username already exists" });
+      return res.status(400).json({ message: "Email, username, or subdomain already exists" });
+    }
+
+    if (!/^\d{10,15}$/.test(phone)) {
+      return res.status(400).json({ message: "Invalid phone number" });
+    }
+
+    const isStrongPassword = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/.test(password);
+    if (!isStrongPassword) {
+      return res.status(400).json({
+        message: "Password must be at least 8 characters and contain letters and numbers",
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    let imageUrl = null;
+    let imageID = null;
+    let logoUrl = null;
+    let logoID = null;
+
+    if (req.files?.profile) {
+      const uploadedImage = await uploadToCloudinary(req.files.profile[0], "seller_profiles");
+      imageUrl = uploadedImage?.url;
+      imageID = uploadedImage?.public_id;
+    }
+
+    if (req.files?.logo) {
+      const uploadedLogo = await uploadToCloudinary(req.files.logo[0], "seller_logos");
+      logoUrl = uploadedLogo?.url;
+      logoID = uploadedLogo?.public_id;
+    }
 
     const newSeller = await prisma.user.create({
       data: {
@@ -99,14 +103,11 @@ export const addSeller = async (req, res) => {
         subdomain,
         payout_method,
         role: "seller",
-      },
-      select: {
-        id: true,
-        user_name: true,
-        email: true,
-        subdomain: true,
-        phone: true,
-        role: true,
+        profile_imge: imageUrl,
+        image_public_id: imageID,
+        logo: logoUrl,
+        logo_public_id: logoID,
+        theme_id, 
       },
     });
 
@@ -115,6 +116,9 @@ export const addSeller = async (req, res) => {
     res.status(500).json({ message: "Error creating seller", error: error.message });
   }
 };
+
+
+
 // update seller
 export const updateSeller = async (req, res) => {
   const { id } = req.params;
@@ -133,6 +137,39 @@ export const updateSeller = async (req, res) => {
   } = req.body;
 
   try {
+    const existingSeller = await prisma.user.findUnique({ where: { id } });
+
+    if (!existingSeller || existingSeller.role !== "seller") {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    // Check for duplicates (excluding current seller)
+    const duplicate = await prisma.user.findFirst({
+      where: {
+        AND: [
+          { id: { not: id } },
+          {
+            OR: [{ email }, { user_name }, { subdomain }],
+          },
+        ],
+      },
+    });
+
+    if (duplicate) {
+      return res.status(400).json({ message: "Email, username, or subdomain already exists" });
+    }
+
+    // Validate email
+    if (email && !/^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+      return res.status(400).json({ message: "Invalid email address" });
+    }
+
+    // Validate phone
+    if (phone && !/^\d{10,15}$/.test(phone)) {
+      return res.status(400).json({ message: "Invalid phone number" });
+    }
+
+    // Prepare data to update
     const dataToUpdate = {
       user_name,
       f_name,
@@ -146,9 +183,27 @@ export const updateSeller = async (req, res) => {
       payout_method,
     };
 
+    // Handle password
     if (password) {
+      const isStrongPassword = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/.test(password);
+      if (!isStrongPassword) {
+        return res.status(400).json({
+          message: "Password must be at least 8 characters and contain letters and numbers",
+        });
+      }
       const hashedPassword = await bcrypt.hash(password, 10);
       dataToUpdate.password = hashedPassword;
+    }
+
+    // Handle profile image
+    if (req.file) {
+      if (existingSeller.image_public_id) {
+        await cloudinary.uploader.destroy(existingSeller.image_public_id);
+      }
+
+      const uploadedImage = await uploadToCloudinary(req.file, "seller_profiles");
+      dataToUpdate.profile_imge = uploadedImage?.url;
+      dataToUpdate.image_public_id = uploadedImage?.public_id;
     }
 
     const updatedSeller = await prisma.user.update({
@@ -162,17 +217,57 @@ export const updateSeller = async (req, res) => {
   }
 };
 
+
+
+
 // delete seller
 export const deleteSeller = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const seller = await prisma.user.findUnique({
-      where: { id },
-    });
+    const seller = await prisma.user.findUnique({ where: { id } });
 
     if (!seller || seller.role !== "seller") {
       return res.status(404).json({ message: "Seller not found" });
+    }
+
+    const customers = await prisma.customer.findMany({
+      where: { seller_id: id },
+    });
+
+    for (const customer of customers) {
+      await prisma.review.deleteMany({ where: { customer_id: customer.id } });
+      await prisma.favorite.deleteMany({ where: { customer_id: customer.id } });
+      await prisma.cart.deleteMany({ where: { customer_id: customer.id } });
+      await prisma.orderItem.deleteMany({
+        where: {
+          order: {
+            customer_id: customer.id,
+          },
+        },
+      });
+      await prisma.order.deleteMany({ where: { customer_id: customer.id } });
+    }
+
+    await prisma.customer.deleteMany({
+      where: { seller_id: id },
+    });
+
+    const products = await prisma.product.findMany({
+      where: { seller_id: id },
+    });
+
+    for (const product of products) {
+      await prisma.image.deleteMany({ where: { product_id: product.id } });
+      await prisma.coupon.deleteMany({ where: { product_id: product.id } });
+    }
+
+    await prisma.product.deleteMany({ where: { seller_id: id } });
+    await prisma.category.deleteMany({ where: { seller_id: id } });
+    await prisma.payout.deleteMany({ where: { seller_id: id } });
+
+    if (seller.image_public_id) {
+      await cloudinary.uploader.destroy(seller.image_public_id);
     }
 
     await prisma.user.delete({
@@ -185,10 +280,13 @@ export const deleteSeller = async (req, res) => {
   }
 };
 
+
+
+
+
 // searchSellers
 export const searchSellers = async (req, res) => {
   const { query } = req.query;
-
   try {
     const sellers = await prisma.user.findMany({
       where: {
@@ -202,23 +300,13 @@ export const searchSellers = async (req, res) => {
           { phone: { contains: query, mode: "insensitive" } }
         ],
       },
-      select: {
-        id: true,
-        user_name: true,
-        f_name: true,
-        l_name: true,
-        email: true,
-        phone: true,
-        subdomain: true,
-      },
     });
-
     if (sellers.length === 0) {
       return res.status(404).json({ message: "Seller not found" });
     }
-
     res.json({ sellers });
   } catch (err) {
     res.status(500).json({ message: "Search error", error: err.message });
   }
 };
+

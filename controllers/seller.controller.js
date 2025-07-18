@@ -279,6 +279,7 @@ export const getDashboardStats = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 // -----------------------Get Total Earnings Summary-------------------
 // GET /seller/earnings-summary
 export const getSellerEarningsSummary = async (req, res) => {
@@ -319,7 +320,8 @@ export const getSellerEarningsSummary = async (req, res) => {
 
     const totalPaidOut = payoutsTotal._sum.amount || 0;
 
-    const websiteTax = totalPaidOut * 0.1;
+
+    const websiteTax = totalPaidOut * 0.10
     // Remaining Balance = Total Earnings From Orders - Total Earnings From Paid Out (Actual Earnings)
     const remaining = totalFromOrders - totalPaidOut - websiteTax;
 
@@ -328,6 +330,7 @@ export const getSellerEarningsSummary = async (req, res) => {
       total_paid_out: totalPaidOut,
       remaining_balance: remaining,
     });
+
   } catch (error) {
     console.error("Error calculating seller earnings:", error.message);
     res.status(500).json({ error: "Internal server error" });

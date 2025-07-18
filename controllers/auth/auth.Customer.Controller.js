@@ -99,7 +99,6 @@ export async function register(req, res) {
  * @param {object} res - Express response object
  */
 export async function login(req, res) {
-  // Validate request body against customerLoginSchema
   const validation = customerLoginSchema.safeParse(req.body);
   if (!validation.success) {
     return res.status(400).json({
@@ -108,31 +107,42 @@ export async function login(req, res) {
     });
   }
 
-  const { email, password } = validation.data;
+  const { email, password, subdomain } = validation.data;
 
   try {
-    // Find the customer by email
-    const customer = await prisma.customer.findUnique({ where: { email } });
-
-    // Check if customer exists
-    if (!customer) {
-      return res.status(400).json({ error: 'Invalid credentials' });
+    
+    const seller = await prisma.user.findUnique({ where: { subdomain } });
+    if (!seller) {
+      return res.status(400).json({ error: 'Invalid seller domain' });
     }
 
-    // Compare the provided password with the hashed password
+    
+    const customer = await prisma.customer.findFirst({
+      where: {
+        email,
+        seller_id: seller.id,
+      }
+    });
+
+    if (!customer) {
+      return res.status(400).json({ error: 'Invalid credentials for this seller' });
+    }
+
     const passwordMatch = await comparePasswords(password, customer.password);
     if (!passwordMatch) {
       return res.status(400).json({ error: 'Invalid password' });
     }
 
-    // Generate a JWT token
-    const token = sign({ id: customer.id, role: 'customer' }, JWT_SECRET, { expiresIn: '7d' }); // Token expires in 7 days
+    const token = sign({ id: customer.id, role: 'customer' }, JWT_SECRET, { expiresIn: '7d' });
+
     res.json({ message: 'Login successful', token });
+
   } catch (err) {
-    console.error("Customer login error:", err); // Log the full error
+    console.error("Customer login error:", err);
     res.status(500).json({ error: 'Server error during login', detail: err.message });
   }
 }
+
 
 /**
  * Handles sending a password reset link to the customer's email.
