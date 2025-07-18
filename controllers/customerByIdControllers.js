@@ -5,11 +5,14 @@ import cloudinary from "../utils/cloudinary.js";
 // Get customer by ID
 export const getCustomerById = async (req, res) => {
   const role = req.user.role;
+
   if (!role === "seller")
     return res.status(403).json({ message: "Access denied. Sellers only." });
   try {
     const { id } = req.params;
-    const customer = await prisma.customer.findUnique({ where: { id } });
+    const customer = await prisma.customer.findUnique({
+      where: { id, seller_id: req.user.id },
+    });
 
     if (!customer)
       return res.status(404).json({ message: "Customer not found" });
@@ -28,7 +31,9 @@ export const updateCustomerById = async (req, res) => {
   if (!role === "seller")
     return res.status(403).json({ message: "Access denied. Sellers only." });
   try {
-    const customer = await prisma.customer.findUnique({ where: { id } });
+    const customer = await prisma.customer.findUnique({
+      where: { id, seller_id: req.user.id },
+    });
     if (!customer)
       return res.status(404).json({ message: "Customer not found" });
 
@@ -48,7 +53,7 @@ export const updateCustomerById = async (req, res) => {
       where: { id },
       data: updateData,
     });
-
+    console.log(updatedCustomer);
     res.status(200).json(updatedCustomer);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -64,7 +69,9 @@ export const deleteCustomerById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const customer = await prisma.customer.findUnique({ where: { id } });
+    const customer = await prisma.customer.findUnique({
+      where: { id, seller_id: req.user.id },
+    });
     if (!customer)
       return res.status(404).json({ message: "Customer not found" });
 

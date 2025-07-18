@@ -11,7 +11,6 @@ export async function getCustomerByToken(req, res) {
     const id = req.user.id;
 
     const customer = await prisma.customer.findUnique({ where: { id } });
-
     if (!customer)
       return res.status(404).json({ message: "Customer not found" });
 

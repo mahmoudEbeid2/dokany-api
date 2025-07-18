@@ -47,11 +47,17 @@ export const getAllCuppons = async (req, res) => {
 // check coupon
 export const checkCoupon = async (req, res) => {
   const user = req.user;
-  const subdomain = req.subdomain;
+  const subdomain = req.body.subdomain;
   const code = req.params.code;
 
   if (user.role !== "customer") {
     return res.status(403).json({ message: "Access denied. Customers only." });
+  }
+
+  if (!subdomain || !code) {
+    return res
+      .status(400)
+      .json({ message: "Missing subdomain or coupon code" });
   }
 
   try {
@@ -79,12 +85,13 @@ export const checkCoupon = async (req, res) => {
       return res.status(404).json({ message: "Coupon not found" });
     }
 
-    if (coupon.expiration_date < new Date()) {
+    if (new Date(coupon.expiration_date) < new Date()) {
       return res.status(400).json({ message: "Coupon is expired" });
     }
 
     res.json({ discount_value: coupon.discount_value });
   } catch (error) {
+    console.error("Error checking coupon:", error);
     res.status(500).json({ message: error.message });
   }
 };
