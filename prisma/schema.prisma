@@ -143,6 +143,7 @@ model Cart {
   customer_id String
   product_id  String
   final_price Float
+  unit_price  Float
   customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
   product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
 }

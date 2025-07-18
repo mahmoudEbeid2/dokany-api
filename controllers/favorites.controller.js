@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-//  Get all favorites 
+//  Get all favorites
 export const getFavorites = async (req, res) => {
   if (req.user.role !== "customer") {
     return res.status(403).json({ error: "Access denied" });
@@ -13,7 +13,13 @@ export const getFavorites = async (req, res) => {
   try {
     const favorites = await prisma.favorite.findMany({
       where: { customer_id: customerId },
-      include: { product: true },
+      include: {
+        product: {
+          include: {
+            images: true,
+          },
+        },
+      },
     });
 
     res.json(favorites);
@@ -52,7 +58,7 @@ export const addFavorite = async (req, res) => {
   }
 };
 
-//  Delete favorite by item ID 
+//  Delete favorite by item ID
 export const deleteFavorite = async (req, res) => {
   if (req.user.role !== "customer") {
     return res.status(403).json({ error: "Access denied" });
@@ -69,5 +75,44 @@ export const deleteFavorite = async (req, res) => {
   } catch (error) {
     console.error("Error deleting favorite:", error);
     res.status(500).json({ error: "Failed to delete favorite" });
+  }
+};
+
+// check favorite
+export const checkFavorite = async (req, res) => {
+  if (req.user.role !== "customer") {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  const customer_id = req.user.id;
+  const product_id = req.params.id;
+
+  try {
+    const exists = await prisma.favorite.findFirst({
+      where: { customer_id, product_id },
+    });
+
+    res.json(exists ? true : false);
+  } catch (error) {
+    console.error("Error checking favorite:", error);
+    res.status(500).json({ error: "Failed to check favorite" });
+  }
+};
+
+//calc favorite
+export const calcFavorite = async (req, res) => {
+  if (req.user.role !== "customer") {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  const customer_id = req.user.id;
+
+  try {
+    const count = await prisma.favorite.count({ where: { customer_id } });
+
+    res.json(count);
+  } catch (error) {
+    console.error("Error checking favorite:", error);
+    res.status(500).json({ error: "Failed to check favorite" });
   }
 };
